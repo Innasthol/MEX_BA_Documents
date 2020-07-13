@@ -2,7 +2,7 @@
 \usepackage[left=3.5cm,right=2.5cm,top=1.5cm,bottom=1.5cm,includeheadfoot]{geometry}
 \usepackage[onehalfspacing]{setspace}
 \usepackage{ngerman}
-\usepackage{times}
+\usepackage{arial}
 \usepackage[latin1]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
@@ -13,6 +13,13 @@
 \usepackage{listings}
 \usepackage{verbatim} 
 \usepackage{color}
+\usepackage{pdfpages}
+\usepackage{eurosym}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\renewcommand{\footrulewidth}{0.4pt}
 
 \renewcommand*{\listoffigures}{%
   \begingroup
@@ -31,7 +38,7 @@
 	belowskip=3mm,
 	showstringspaces=false,
 	columns=fixed,
-	basicstyle={\footnotesize\ttfamily},
+	basicstyle={\tiny\ttfamily},
 	numbers=none,
 	numberstyle=\tiny\color{gray},
 	keywordstyle=\color{blue},
@@ -39,7 +46,7 @@
 	stringstyle=\color{mauve},
 	breaklines=true,
 	breakatwhitespace=true,
-	tabsize=4
+	tabsize=1
 }
 
 \begin{document}
@@ -73,11 +80,29 @@
 		\end{flushleft}    
 	\end{titlepage}
 
+	%Kopf und Fusszeile
+	\lhead{}
+	\chead{}
+	\rhead{}
+
+	\lfoot{}
+	\cfoot{}
+	\rfoot{}
+
 	\tableofcontents
 		\newpage
 
-	\setcounter{equation}{1} 
+	%Kopf und Fusszeile
+	\fancyhead[C]{}
+	\fancyhead[OL]{}
+	\fancyhead[EL]{\leftmark}
+	\fancyhead[OR]{\leftmark} 
+	\fancyhead[ER]{}
 
+	\lfoot{}
+	\cfoot{Seite~\thepage}
+	\rfoot{}
+	
 	\section{Abstract}
 		Text
 		\newpage
@@ -132,7 +157,7 @@
 				\item[$\bullet$] Servomotoren: Sechs K-Power DM1500 (Abb. \ref{fig:Bild4} auf Seite \pageref{fig:Bild4}) 
 				\item[$\bullet$] Diverse mechanische Bauteile für den Aufbau des Robotermanipulators 
 			\end{itemize}
-			\begin{figure}[htbp] 
+			\begin{figure}[htbp]  
   				\centering
      			\fbox{\includegraphics[width=0.4\textwidth]{bilder/Abbildung_3.png}}
   				\caption{Robotormanipulator: Konfiguration mit Greifer (Quelle: eigene Aufnahme)} 
@@ -152,9 +177,9 @@
 			\begin{itemize}
   				\setlength{\itemsep}{0pt}   
 				\item[$\bullet$] die Analyse und Erweiterung der durch die Projektgruppe erstellte Software-Architektur 
-				\item[$\bullet$] Implementieren der Schnittstelle zur Ansteuerung des Robotermanipulators unter Windows
-				\item[$\bullet$] Portieren der Schnittstelle nach Linux
-				\item[$\bullet$] Testen der Schnittstelle an der Teststation und am Robotormanipulator sowohl unter Windows als auch unter Linux
+				\item[$\bullet$] die Implementieren der Schnittstelle zur Ansteuerung des Robotermanipulators unter Windows
+				\item[$\bullet$] die Portierung der Schnittstelle nach Linux
+				\item[$\bullet$] das Testen der Schnittstelle an der Teststation und am Robotormanipulator sowohl unter Windows als auch unter Linux
 			\end{itemize}  
 
 		\subsection{Projektorganisation}
@@ -163,8 +188,22 @@
 			Um die sich entwickelnde Aufgabenstellung zu dokumentieren ist im ILIAS ein Forum eingerichtet worden. Zusätzlich existiert dort ein Ordner um 
 			Projektdateien hochladen zu können. \\
 			Unter GitHub ist für die programmierten Sourcefiles ein Repository eingerichtet. Dies dient sowohl dem verfolgen des Projektfortschritts 
-			durch den Projektbetreuer als auch der Datensicherung des Quellcodes.
+			durch den Projektbetreuer als auch der Datensicherung des Quellcodes. Die Kommentierung im Quellcode ist Doxygen-komform (Software-Dokumentationswerkzeug)
+			erfolgt, so kann jederzeit mit Hilfe von Doxygen eine Quellcode-Dokumentation generiert werden. 
 
+		\subsection{Eingesetzte Software}
+			Für die Durchführung des Projektes und die Erstellung der Bachelorarbeit ist folgende Software eingesetzt worden:
+			\begin{itemize}
+				\setlength{\itemsep}{0pt}
+				\item[$\bullet$] \textbf{Microsoft Visio:} Erstellung des UML-Diagramms
+				\item[$\bullet$] \textbf{Eclipse IDE for C/C++ Developers:} Programmierung in C++
+				\item[$\bullet$] \textbf{Eclipse TeXlipse 2.0.2:} Erweiterung für Eclipse um LaTeX-Dokumente innerhalb von Eclipse zu erstellen.
+				\item[$\bullet$] \textbf{eclox 0.12.1:} Erweitung für Eclipse für Doxygen
+				\item[$\bullet$] \textbf{Pololu Maestro Control Center:} Software um die Grundeinstellungen am Microcontroller und den angeschlossenen Servomotoren durchführen zu können.
+				\item[$\bullet$] \textbf{Betriebssysteme:} Windows 10 und Ubuntu 18.04.4
+				\item[$\bullet$] \textbf{VMware Workstation 15 Player:} Vitualisierung von Linux auf dem Windows-PC
+			\end{itemize}
+	
 	\section{Analyse der Software-Architektur}
 		\begin{figure}[htbp] 
   			\centering
@@ -180,19 +219,337 @@
 		zu Öffnen, zu Schließen und Positionswerte für eine Servomotor zu setzen. \\
 		Die Namen "`IPololu"' und "`ISerialCom"' suggerieren, dass es sich um Interface-Klassen handelt, dabei handelt es sich um einfache Klassen. Aus dem UML-Diagramm
 		ist ebenfalls nicht ersichtlich welche Klassen Attribute enthalten bzw. welche Übergabeparameter die einzelnen Funktionen haben.
-		Im Quellcode ist lediglich die Klasse "`IPololu"' umgesetzt, sie enthält die Funktionen um Positionswerte von angeschlossenen Servomotoren zu verändern: \\
-		
-		\begin{lstlisting}{IPololu_OLD}
+		Im Quellcode ist lediglich die Klasse "`IPololu"' umgesetzt, sie enthält die Funktionen um Positionswerte von angeschlossenen Servomotoren zu verändern:
+		\begin{lstlisting}[caption={[IPololu]Auszug aus dem Quellcode der Projektgruppe - Klasse: IPololu}]
 			unsigned char setTarget(HANDLE port, unsigned char channel,unsigned short target)
 			unsigned char setMultipleTargets(HANDLE port, unsigned char numberoftargets, unsigned char channel, unsigned short target)
+			unsigned char setSpeed(HANDLE port,unsigned char channel,unsigned short speed)
+			unsigned char getPosition(HANDLE port ,unsigned char channel, unsigned int* position)
+			unsigned char getmovingstate(HANDLE port)
 		\end{lstlisting}
+		Die umgesetzten Funktionen sind durch die Nutzung der WindowsAPI nur unter Windows kompilier- und nutzbar. Für die Herstellung der seriellen Verbindung
+		wird eine Variable vom Typ HANDLE aus der <windows.h> genutzt. Die Handhabung der seriellen Schnittstelle erfolgt lediglich in einer Funktion. Für die serielle Verbindung
+		ist keine Klasse erstellt worden. Der Quellcode, der von der Projektgruppe erstellt wurde, funktioniert zwar um die Servomotoren zu testen und die Funktionsweise
+		des Robotermanipulators vorzuführen, entspicht jedoch nicht den gewünschten Anforderung einer objektorientierten Umsetzung. \\
+		Aus diesem Grund ist die Software-Architektur überarbeitet worden. In Abb. \ref{fig:Bild6} auf Seite \pageref{fig:Bild6} ist das neue Konzept zu sehen. Die Implementierung und
+		die Zusammenhänge werden im nachfolgenden Kapitel behandelt.
+		\begin{figure}[htbp] 
+  			\centering
+     		\fbox{\includegraphics[width=0.99\textwidth]{bilder/Abbildung_6.png}}
+  			\caption{UML-Diagramm der neuen Software-Architektur (Quelle: eigene Aufnahme)}  
+  			\label{fig:Bild6}
+		\end{figure}
+	
+	\section{Vorgaben durch Hardware}
+		\subsection{Funktionsweise der Servomotoren} \label{FunktionServo}
+		An dieser Stelle soll nicht die generelle Funktionsweise eines Servomotors erläutert werden, sondern es wird dargestellt, welche Positionsdaten die in diesem Projekt verwendeten Servomotoren
+		für das Anfahren einer bestimmten Position benötigt und wie der Zusammenhang zwischen Positionsdaten des Servomotors und der Winkeleinheiten Grad und Radiant ist.\\
+		Die Servomotoren werden über ein PWM \footnote[1]{Pulsweitenmodulation: Modulationsverfahren, bei dem eine recheckige Spannung einer gleichbleibenden Frequenz übermittelt wird und
+		die Informationen in den verschiedenen Breiten der rechteckigen Pulse codiert ist. (Quelle: Onlinelixikon, https://www.bet.de/lexikon/pulsweitenmodulation/)} angesteuert. Der Winkel eines
+		Servomotor wird über die Breite des Pulses bestimmt. Gängig ist ein 50Hz Signal, das entsprichte einer Periodenlänge von 20ms). Diese Einstellungen können im Maestro Control Center für die
+		Servomotoren vorgenommen werden. Daraus ergeben sich Positionswerte zwischen 500$\mu s$ (linker Anschlag, $-90^\circ$) und 2500$\mu s$ (rechter Anschlag, $+90^\circ$). Dadurch ergibt sich
+		auch die mittlere Position des Servomotors von 1500$\mu s$ (entspricht der Position $0^\circ$). Einige Hersteller schränken diesen Bereich weiter ein, daher ist beim Kauf eines Servomotors
+		darauf zu achten, welche Pulseweite sie abdecken. Jedoch ist es ratsam, bei jedem Servomotortyp diese Grenzen durch experemetieren zur ermittlen. So gibt der Hersteller des K-Power DM1500
+		über die Pulsweite keine Angaben preis, Händler bewerben eine Pulsweite von 1000-1500$\mu s$. Durch Austesten des Servomotors K-Power DM1500 am Maestro Control Center hat sich gezeigt, dass
+		der Servomotor die 500-2500$mu s$ beherrscht. Dies gilt auch für den Testservomotor SG90. Damit kann sich jeder Servomotor am Robotermanipulator um 180$^\circ$ drehen (jeweils $\pm90^\circ$
+		von der zentralen Position von 1500$\mu s$ aus). Die Tabelle \ref{tbl:zusammenhaenge} und die Formeln zeigen den Zusammenhang zwischen $\mu s $, Grad und Radiant.
+		\begin{table}[h]
+     		\centering
+			\begin{tabular}{l|c|c|c}
+       			\textbf{Einheit} & \textbf{500}$\mu s$ & \textbf{1500}$\mu s$ & \textbf{2500}$\mu s$ \\
+       			\hline
+       			Grad & $-90^\circ$ & $0^\circ$ & $+90^\circ$ \\
+       			Radiant & $-\frac{\pi}{2}$ & $0$ & $+\frac{\pi}{2}$ \\
+       			Absolutwert & $6000-3600 $ & $6000$ & $6000+3600$ \\
+     		\end{tabular}
+     		\caption{Zusammenhang zwischen $\mu s$, Grad und Radiant}
+     		\label{tbl:zusammenhaenge}
+		\end{table}
+		\ \\
+		Somit entsprechen 2000$\mu s$ einem Bereich von $180^\circ$. Dadurch ergibt sich ein Umrechnungsfaktor von $\mu s$ in Grad (conFactorPosToDeg) von $ \frac{2000\mu s}{180^\circ} = 11.\overline{1}$.   
+		Jedoch hat sich in der Praxis gezeigt, dass sich ein Servomotor, vor allem in einer Preiskategorie \EUR{8-10}, nicht die theoretischen Anschläge hat, die sich aus der Frequenz und der Periodenlänge
+		des Signals errechnen lassen. Der K-Power DM1500 stoppt bereits am rechten Anschlag bei 2400$\mu s$ und am linken Anschlag bei 600$\mu s$. Dadurch ergibt sich jedoch ein wesentlich komfortablerer
+		Umfrechnungsfaktor (conFactorPosToDeg) von $ \frac{1800\mu s}{180^\circ} = 10$. Mit diesem Umrechnungsfaktor können Servopositionen in $\mu s$ sowohl in Grad als auch in Radiant umgerechnet werden.
+		Der Umrechnungsfaktor kann als Konstante in der "`ServoMotor"'-Klasse unter dem Namen "`conFactorPosToDeg"' angepasst werden.\\
 		
-		 
+		Umrechnung von Gradmass in Bogenmass und umgekehrt:
+		\begin{eqnarray} \label{DegToRad}
+			Gradmass = \frac{180^\circ}{\pi} \times Bogenmass \\
+			Bogenmass = \frac{\pi}{180^\circ} \times Gradmass
+		\end{eqnarray}
 		
-	\section{A}
+		Umrechnung von Servomotorposition in Grad und umgekehrt:
+		\begin{eqnarray} \label{MyToDeg}
+    		Grad = \frac{\mu s}{conFactorPosToDeg} \\
+    		\mu s = Grad \times conFactorPosToDeg
+		\end{eqnarray}
+		
+		Umrechnung von Servomotorposition in Radiant und umgekehrt:
+		\begin{eqnarray} \label{MyToRad}
+    		Radiant = \frac{\mu s}{conFactorPosToDeg} \times \frac{\pi}{180^\circ} \\
+    		\mu s = Radiant \times \frac{180^\circ}{\pi} \times conFactorPosToDeg
+		\end{eqnarray}
+		
+		\subsection{Befehle für den Controller} \label{VorgabePololu}
+		Durch die aktuelle Festlegung auf den Mini Maestro 12-Channel USB Servo Controller, sind auch durch diese Hardware bestimmte Vorgaben in der Befehlsnutzung gegeben.
+		Die dem Benutzer zur Verfügunggestellten manipulationsmöglichkeite könnne dem Pololu Maestro Servo Controller User's Guide\footnote{https://www.pololu.com/docs/0J40 Stand: 13.07.2020}
+		entnommen werden. Als Anlage \ref{usersguide} auf Seite \pageref{usersguide} dieser Bachelorbeit ist lediglich das Kapitel "`5.e Serial Servo Commands"' angefügt. \\
+		Ein Befehl, der an den Controller übertragen wird besteht, je nach Befehl, aus 1, 2 bzw. 4 Byte. Folgende Befehle bietet der Controller: \\
+	
+		\noindent \textbf{Set Target (in hex: 0x84)} Der Befehl "`Set Target"' dient dem setzen eines Positionswertes für den Servomotor, der dann direkt angefahren wird.
+		Der Befehl setzt sich aus 4 Bytes (1 Befehlsbyte und 3 Datenbytes) zusammen. Das erste Byte indentifiziert das Kommando, welches der Controller ausführen soll, das zweite Byte gibt das Ziel für den 
+		Befehl vor, also welcher angeschlossene Servomotor angesprochen werden soll. Das dritte und vierte Byte enthält die Position, die der Servomotor einnehmen soll
+		(aufgeteilt in 0-6 Bits in dritten Byte und die Bits 7-13 im vierten Byte).
+		\begin{lstlisting}[caption={[SetTarget]Befehlsaufbau für Set Target}]
+			serialBytes[0] = 0x84; // Command byte: Set Target.
+			serialBytes[1] = channel; // First data byte holds channel number.
+			serialBytes[2] = target & 0x7F; // Second byte holds the lower 7 bits of target.
+			serialBytes[3] = (target >> 7) & 0x7F;   // Third data byte holds the bits 7-13 of target.	
+		\end{lstlisting}									 
+		Dabei erwartet der Controller den Positionswert nicht in $\mu s$ sondern als Absolutwert. Dieser errechnet sich wie folgt:
+		\begin{eqnarray}
+    		Position = \mu s \times conFactorMyToPos
+		\end{eqnarray}
+		Der Umrechnungsfaktor von Positionswert in $\mu s$ nach Positionswert als Absolutwert ist durch den Controller vorgegeben und ist vom Betrag 4 (hier und im Quellcode
+		mit conFactorMyToPos bezeichnet). Das bedeutet wenn ein Nutzer will, dass der Servomotor seine mittlere Position von 1500$\mu s$ anfahren soll, muss über
+		den Befehl Set Target der Wert 6000 ($1500\mu s \times 4$) übergeben werden. \\
+		
+		\noindent \textbf{Set Speed (in hex: 0x87) und Set Acceleration (in hex: 0x89)} Die Befehle Set Speed und Set Acceleration sind ebenfalls wie Set Target aufgebaut.
+		Der Befehl ist 4 Byte groß. Die Infomationen in den Bytes entsprechen dem Befehl von Set Target, jedoch erwartet der Controller als Geschwindigkeits- bzw.
+		Beschleunigungswert einen Wert zwischen 0-255. \\
+		Dabei steht 1 als Geschwindigkeitswert für die langsamste Geschwindigkeit des Servomotors und 255 für die Höchste. Ausnahme bildet die 0, sie steht für
+		"`unlimited speed"', also das Maximum, das der Servomotor leisten kann. Einen sichtbaren bzw. mit einfachen Mitteln meßßbaren Unterschied zwischen den Werten 0 und 255 gibt
+		es nicht. Daher ist in der Umsetzung der Befehle in C++ auf die 0 verzichtet worden. Es werden nur Werte von 1-255 zugelassen und es kommt auch nicht zu Geschwindigkeitssprüngen,
+		wenn z.B. der Wert innerhalb einer Schleife erhöht bzw. verringert wird. Gleiches gilt für den Befehl der Beschleunigung.\\ 	
+		
+		\noindent \textbf{Get Position (in hex: 0x90)} Der Befehl Get Position veranlasst den Controller einen Rückantwort bereitzustellen, die von der seriellen Schnittstelle 
+		gelesen werden kann. Der Befehl Get Position besteht nur aus 2 Bytes (1 Befehlsbyte und 1 Datenbyte).
+		\begin{lstlisting}[caption={[GetTarget]Befehlsaufbau für Get Target}]
+			serialBytes[0] = 0x90; // Command byte: Get Target.
+			serialBytes[1] = channel; // First data byte holds channel number.
+		\end{lstlisting}
+		Damit weis der Controller von welchem Servomotor er den Positionswert bereitstellen soll. Der Postitionswert der vom Controller zurückgeliert wird, ist im gegensatz
+		zum Set Target nicht als Absolutwert, sondern kommt in $\mu s$ direkt vom Servomotor. Das bedeutet, um in der Programmierung nicht in den Einheiten durcheinander
+		zu geraten, muss der, von der Funktion Get Position, zurückgelieferte Wert mit dem Umrechnungsfaktor (conFactorMyToPos) multipliziert werden. \\   	
+		
+		\noindent \textbf{Get Moving State (in hex: 0x93)} Dieser Befehl ist nur 1 Byte groß und enthält damit nur das Befehlskommando an den Controller. Der Controller 
+		antwortet dann mit einer 1 oder 0. Solange sich irgend ein angeschlossener Servomotor noch bewegt, liefert dieser Befehl als Antwort eine 1, stehen \underline{alle} 
+		Servomotoren still, dann liefert der Befehl als Antwort die 0. \\
+		
+		Wie die Abfrage der Rückantwort erfolgt wird im Abschnitt \ref{ISerialCom} auf Seite \pageref{ISerialCom} näher erläutert.
+			
+	\section{Implementierung der Software-Achritektur}
+		Für die Implementierung der Schnittstelle ist entschieden worden unter Windows die WindowsAPI zu nutzen (\#include <windows.h>) und unter Linux die File Control Options in der "`\#include <fcntl.h>"'.
+		Die Entscheidung fiel nach Einarbeitung in das User's Guide von Pololu, welches auch Beispielcode für die Nutzung der Serial Commands sowohl unter Windows als auch unter Linux bot. Der Quellcode aller
+		implementieren Header- und Sourcefile sind dem Anhang bzw. der beiliegenden DVD zu entnehmen.
+		
+				
+		% Bild der neuen Softwarearchitektur
+		\subsection{ISerialCom/SerialCom} \label{ISerialCom}
+			Für das Handling der seriellen Schnittstelle ist ein Interface "`ISerialCom"' definiert und die zugehörige Klasse "`SerialCom"' implementiert worden 
+			(Quellcode siehe Anhang \ref{SerialComHPP} auf Seite \pageref{SerialComHPP}). Das Interface setzt vier grundlegende Funktionen voraus, die in
+			einer von ISerialCom abgeleiteten Klasse umgesetzt werden müssen. Dabei handelt es sich um folgende funktionen:
+			\begin{lstlisting}[caption={[ISerialCom]Auszug aus dem Headerfile SerialCom.hpp: ISerialCom}]
+				class ISerialCom {			
+				public:
+					virtual ~ISerialCom(){};
+    				virtual void initSerialCom(const char* portName, unsigned short baudRate) = 0;
+    				virtual bool openSerialCom() = 0;
+    				virtual bool closeSerialCom() = 0;
+    				virtual bool writeSerialCom(unsigned char command[], unsigned short sizeCommand, unsigned char *response, unsigned short sizeResponse) = 0;
+				};
+			\end{lstlisting}
+			Die Funktion "`iniSerialCom"' dient dem initialisieren einer seriellen Verbindung. Dazu werden der Funktion der Portname (z.B. "`COM4"' unter Windows oder "`/dev/ttyACM0"')
+			und die Baudrate mit der die serielle Verbindung arbeiten soll übergeben. Mit den Funktionen "`openSerialCom"' und "`closeSerialCom"' lässt sich die 
+			serielle Verbindung öffnen bzw. schliessen. Zusätzlich bekommt der Nutzer von den Funktionen ein Feedback, ob der gewünschte Vorgang erfolgreich war, 
+			oder ein Fehler aufgetreten ist.\\
+			Die Funktion "`writeSerialCom"' dient dem Übertragen von Befehlen an den angeschlossenen Controller (in diesem Fall ein Mini Maestro 12-Channel USB Servo Controller). 
+			Auch hier bekommt der Nutzer das Feedback über erfolgreiches oder fehlerhaftes Übertragen von Befehlen. Als Übergabeprameter bekommt die Funktion
+			den Schreibbefehl für den Controller (command) und die Größe dieses Befehls in Bytes (sizeCommand). Handelt es sich um reine Schreibbefehle ist "`response"' gleich NULL und die 
+			Größe von "`sizeResponse"' ist gleich Null, da keine Antwort vom Controller erwartet wird. Bei Befehlen, die eine Antwort erwarten wird "`response"' als Zeiger auf ein
+			Feld vom Typ "`unsigned char"' übergeben und die "`sizeResponse"' ist dann, je nach Antwortgröße, 1 bzw. 2 Byte gross. \\
+			Die Übertragung eines zusammengesetzen Befehls, wie in Kapitel \ref{VorgabePololu} auf Seite \pageref{VorgabePololu} beschrieben, erfolgt unter Windows mit dem Befehl "`WriteFile"' 
+			(unter Linux mit "`write"'). Ist die Variable "`sizeResponse"' gleich 0, wird keine Antwortet vom Controller erwartet. Ist der Wert 1 bzw. 2 wird eine Antwort erwartet. Der Controller
+			stellt aufgrund des Befehl, der Über das "`WriteFile"' übertragen wurde, eine Antwortbereit, die jetzt noch über "`ReadFile"' bzw. "`read"' über die serielle Schnittstelle gelesen
+			werden muss. Im Falle einer Abgefragten Position ist die Antwort 2 Byte groß und im Falle einer Abfrage des Bewegungsstatus ist die Antwort 1 Byte groß.
+			\ \\
+			Von diesem Interface ist die Klasse "`SerialCom"' abgeleitet. In dieser sind die Funktionen vom Interface implementiert. Die Klasse "`SerialCom"' erhält die privaten Member für 
+			den Portnamen und die Baudrate. Als dritten Member hat die Klasse die serielle Verbindug "`port\_"' selbst. Um den Quellcode von Vorherein sowohl für Windows als auch für Linux 
+			kompilierbar zu halten, ist mit dem Kontrukt
+			\begin{lstlisting}[caption={[IFDEF]\#ifdef}]
+				#ifdef _WIN32
+        			// Quellcode für Windows
+        			HANDLE port_;
+    			#else
+        			// Quellcode für Linux
+        			int port_;
+    			#endif
+			\end{lstlisting}
+			sowohl der Quellcode für Windows als auch für Linux in der selben Klasse und den selben Funktionen untergebracht. Über "`\#ifdef"' wird sichergestellt, dass während der Kompilierung
+			nur der für das aktuelle Betriebssystem relevate Code übersetzt wird. Für die serielle Verbindung wird "`port\_"' als HANDLE
+			definiert und unter Linux als Integer. Mit diesem Interface und der dazugehörigen Klasse kann eine serielle Schnittstelle etabliert werden und damit eine Verbindung
+			zum Servocontroller hergestellt werden.
+			
+		\subsection{IPololu / Pololu}
+			Um die Servomotoren ansteuern zu können ist ein weiteres Interface "`IPololu"' definiert und die Klasse "`Pololu"' implementiert worden 
+			(Quellcode siehe Anhang \ref{PololuHPP} auf Seite \pageref{PololuHPP}).
+			\begin{lstlisting}[caption={[IPololu]Auszug aus dem Headerfile Pololu.hpp: IPololu}]
+				class IPololu {
+				protected:
+					virtual bool setPosition(unsigned short servo, unsigned short goToPosition) = 0;
+					virtual bool setSpeed(unsigned short servo, unsigned short goToSpeed) = 0;
+					virtual bool setAcceleration(unsigned short servo, unsigned short goToAcceleration) = 0;
+					virtual unsigned short getPosition(unsigned short servo) = 0;
+				public:
+					virtual ~IPololu(){};
+    				virtual bool getMovingState() = 0;
+				};
+			\end{lstlisting}
+			Das Interface "`IPololu"' definiert die Funktionen, die es dem Nutzer erlauben, Servomotoren am Controller anzusteuern. Dabei können die Position, Geschwindigkeit und Beschleunigung
+			eines Servomotors gesetzt werden. Desweiteren bietet das Interface eine Funktion, die die aktuelle Position des Servomotor liefert. Diese genannten Funktionen sind im Interface und auch 
+			in der Klasse "`Pololu"' als "`protected"' gesetzt. "`Public"' ist lediglich die Funktion "`getMovingState"', diese liefert den Bewegungsstatus der angeschlossenen Servomotoren. Stehen 
+			\underline{alle Servomotoren} still, liefert die Funktion den Wert "`0"', befindet sich noch \underline{auch nur ein Servomotor} in Bewegung, liefert die Funktion den Wert "`1"'. \\
+			\ \\
+			Die vom Interface abgeleitete Klasse "`Pololu"' steht mit der Klasse "`SerialCom"' in einer Aggregationsbeziehung. Das bedeutet, dass ein Objekt vom Typ "`SerialCom"' als "`protected Member"'
+			teil der Klasse Pololu ist. Damit ist es möglich mit einem erzeugten "`Pololu"'-Objekt eine serielle Verbindung zu etablieren. Dazu ist die Klasse "`Pololu"' mit "`public"'-Funktionen erweitert,
+			die es ermöglichen eine serielle Verbindung zu initialisieren und diese dann öffnen und schließen zu können. Die Funktionen "`initConnection"', "`openConnection"' und "`closeConnection"' 
+			rufen die equivalenten Funktionen des Objekts "`serialCom"' auf. Somit kann zuerst von außerhalb der Klasse "`Pololu"' nur auf die zum Verbindungsaufbau notwendigen Funktionen 
+			zugegriffen werden. Im nächsten Abschnitt wird darauf näher eingegangen. Für die Ansteuerung eines Controllers ist damit ein Pololu-Objekt notwendig.
+			
+		\subsection{IServoMotor/ServoMotor}  
+			Die dritte Inferface-Klasse-Kombination dient dem erzeugen von Servomotor-Objekten (Quellcode siehe Anhang \ref{ServoMotorHPP} auf Seite \pageref{ServoMotorHPP}).
+			Jeder angeschlosse Servomotor wird in C++ durch ein Objekt der Klasse "`ServoMotor"' representiert.
+			\begin{lstlisting}[caption={[IServoMotor]Auszug aus dem Headerfile ServoMotor.hpp: IServoMotor und ServoMotor}]			
+				class IServoMotor {
+				public:
+					virtual ~IServoMotor(){};
+					virtual unsigned short getServoNumber() = 0;
+					virtual unsigned short getMinPos() = 0;
+					virtual unsigned short getMidPos() = 0;
+					virtual unsigned short getMaxPos() = 0;
+					virtual bool setPositionInAbs(unsigned short newPosition) = 0;
+					virtual bool setPositionInDeg(short newPosition) = 0;
+					virtual bool setPositionInRad(float newPosition) = 0;
+					virtual bool setSpeed(unsigned short newSpeed) = 0;
+				    virtual bool setAccelaration(unsigned short newAcceleration) = 0;
+					virtual unsigned short getPositionInAbs() = 0;
+					virtual short getPositionInDeg() = 0;
+					virtual float getPositionInRad() = 0;
+					virtual void showPololuValues (unsigned short& min, unsigned short& mid, unsigned short& max) = 0;
+				};
+			
+				class ServoMotor : public IServoMotor{
+				private:
+					const short maxDeg = 90;				//maximum degree allowed
+					const float maxRad = M_PI/2;			//maximum radiant allowed, M_PI is the constant from <cmath> for the number Pi
+			    	const short maxSpeed = 255;				//maximum value for the speed
+					const short maxAcceleration = 255;      //maximum value for the acceleration
+					const short minSpeed = 1;				//minimum value for the speed
+					const short minAcceleration = 1;        //minimum value for the acceleration
+					const short conFactorDegToPos = 10;	    //conversion factor from degrees to position
+					const short conFactorMyToPos = 4;		//conversion factor to convert microseconds (position value of a servo) to position values
+			    	unsigned short servoNumber_;
+					unsigned short startingPosition_;	    //startPosition is the center position of a servo, in most cases it is value of 6000 (1500microseconds * 4)
+					unsigned short delta_;
+					Pololu *connection_ = NULL;
+				public:
+					ServoMotor(unsigned short servo, unsigned short startingPosition, unsigned short delta, Pololu *connection);
+			\end{lstlisting}
+			Bei dem Erzeugen eines Objektes vom Typ "`ServoMotor"' muss dieser zwingend über den Kontruktor mit Übergabeparametern initialisiert werden.
+			Über den Konstruktor wird dem Objekt, die Servonummer (Anschlussport auf dem Controller. Für den hier genutzten Mini Maestro 12-Channel USB Servo Controller
+			sind es die Anschlüsse 1-12), die Startposition (damit ist die mittlere Position des Servomotors gemeint, die als Ausgangslage für Bewegungen dient), ein Delta
+			(gibt den Positionsbereich an, den der Servomotor nach Links und Rechts von der Startposition aus drehen kann) und als Zeiger wird dem Servomotor-Objekt
+			die serielle Verbindung in Form des Pololu-Objektes, mitgegeben. \\
+			Das Servomotor-Objekt bietet dem Nutzer alle Manipulationsmöglichkeiten die der Servo-Controller unterstützt. Die Klasse "`ServoMotor"' greift dazu auf die 
+			Funktionen des Pololu-Objektes zurück. Allerdings wäre das nicht ohne weiteres Möglich, da die benötigten Funktionen in der Klasse "`Pololu"' "`protected"' sind.
+			Damit die Klasse "`ServoMotor"' die Funktionen dennoch nutzen kann ist in der Klasse "`Pololu"' die Klasse "`ServoMotor"' als "`friend class"' definiert, damit 
+			kann aus der Klasse "`ServoMotor"' auf die "`protected"' Funktionen der Klasse "`Pololu"' zugegriffen werden. \\
+			Damit ist sichergestellt, das aus der Main-Klasse oder einer anderen Stelle des Programmes wo ein Objekt vom Typ "`Pololu"' erzeugt wird, zwar auf die Funktionen
+			zugegriffen werden kann um eine serielle Verbindung zu etablieren, die angeschlossenen Servomotoren jedoch nur von einem "`ServoMotor"'-Objekt manipuliert werden
+			können. \\
+			Desweiteren enthält die Klasse "`ServoMotor"' notwendige Parameter für die Festlegung von Grenzen und Umrechnung von Positionswerten. Wie bereits in Kapitel \ref{FunktionServo}
+			auf Seite \pageref{FunktionServo} erwähnt, arbeitet der Servomotor intern mit Positionsangaben in $\mu s$. Dem Nutzer werden durch die Klasse "`ServoMotor"' drei
+			Möglichkeiten für die Positionsangabe geboten. 
+			\begin{description}
+				\item[setPositionInAbs:] Mit dieser Funktion ist es möglich die Positionsangabe für den Servomotor in absoluten Werten anzugeben. Durch die Vorgabe des Controller 
+										 bedeutet dies, wenn z.B. der Servomotor seine mittlere Position von 1500$\mu s$ anfahren soll, erwartet der Controller vom Benutzer einen
+										 Positionswert von 6000 ($1500\mu s \times 4$). Dadurch ergibt sich ein Arbeitsbereich für den Servomotor von 6000 (als mittlere Position)
+										 $\pm$ 3600.
+			    \item[setPositionInDeg:] Eine zweite Möglichkeit ist das Setzen der Position durch Angabe der Position in Grad. Durch die Konstante "`maxDeg"' wird der Bereich der
+			    						 möglichen Eingaben auf einen Bereich von $\pm 90 ^\circ$ eingeschränkt. Die Einschränkungen erbegen sich durch die Bauweise der Servomotoren.
+			    						 Dadurch das der Controller einen Positionswert als Absolutwert zwischen 2400 und 9600 erwartet muss innerhalb der Funktion zuerst die
+			    						 Gradzahl in den Absolutwert umgerechnet werden. Der Factor für die Umrechnung ist 10 (conFactorDegToPos). 
+			    						 Zuerst wird die Gradzahl in Absolutwert umgerechnet und das Ergebnis im Anschluss zur mittleren Position
+			    						 addiert bzw. substrahiert (je nach Vorzeichen der Gradzahl).
+			    \item[setPositionInRad:] Die dritte Möglichkeit ist die Eingabe einer Position in Radiant. Durch die Konstate "`maxRad"' wird der Bereich
+			    						 der möglichen Eingaben auf einen Bereich von $\pm\frac{\pi}{2}$ eingeschränkt. Hier muss zuerst der Radiant in Grad und im anschluss
+			    						 in den Positionswert umgerechnet werden. Die Formeln dafür sind auf der Seite \pageref{DegToRad} zu sehen.
+			\end{description}		
+			Mit Hilfe der Funktion "`getPosition"' kann der aktuelle Positionswert eines Servomotors erfragt werden. Auch in diesem Fall kann sich der Nutzer den aktuellen
+			Positionswert als Absolutwert, als Gradmass bzw. als Bogenmass geben lassen. Hier nochmal der Hinweis, dass der Positionswert, der vom Controller 
+			als Rückgabewert geliefert wird, in $\mu s$ ist und erst noch in den Absolutwert umgerechnet werden muss. Die Besonderheit des Controllers ist, er liefert den Positionswert
+			in $\mu s$, erwartet aber zum setzen einer neuen Position den Wert als Absolutwert. Hier ist Vorsicht geboten. Daher hat der Nutzer nur die drei Möglichkeiten 
+			Positionswerte anzugeben (Absolutwert, Grad, Radiant). Positionswerte in $\mu s$ kann der nutzer nicht verwenden. \\
+			Lediglich über die Funktion "`showPololuValues"' kann der Nutzer sich vom "`ServoMotor"'-Objekt die Minimum-, Mittel- und Maximalposition als Wert in $\mu s$ anzeigen lassen.
+			Dies dient der Überprüfung der Einstellungen im Maestro Control Center. Für jeden neuen Servomotor müssen zuerst Einstellungen im Maestro Control Center getätigt werden. Sie 
+			erfolgen ausschließlich in $\mu s$. Damit der Nutzer überprüfen kann, ob die Einstellungen die er dem "`ServoMotor"'-Objekt mit den Einstellungen im Maestro Control Center
+			übereinstimmen, steht ihm die Funktion "`showPololuValues"' zur Verfügung. \\	
+			Die Methoden "`getMinPos"', "`getMidPos"' und "`getMaxPos"' liefern dem Nutzer Informationen darüber, wie die Einstellungen für ein bestimmtes "`ServoMotor"'-Objekt sind.
+			Die Positionswerte, die diese Funktionen liefert sind Absolutwerte. Sie errechnen sich aus den bei der initialisierung des Objektes angegebenen Werten für die
+			Mittlere-/Ausgangsposition mit dem dazugehörenden Delta (Schwänkbereich nach Links und Rechts). \\
+			Die Set- und Get-Methoden der "`ServoMotor"'-Klasse können aufgrund ihrer "`friend class"'-Beziehung zur "`Pololu"'-Klasse auf dessen Private bzw. durch "`protected"' geschützte 
+			Methoden zugreifen.		
+			
+		\subsection{Testen der implementierten Klassen}
+			Um die Funktionalität der implementierenten Klassen "`SerialCom"', "`Pololu"' und "`ServoMotor"' zu testen, ist ein weiteres Header- und Sourcefile angelegt worden (TestUnits.hpp, 
+			Quellcode siehe Anhang \ref{TestUnitsHPP} auf Seite \pageref{TestUnitsHPP}).
+			Das Sourcefile "`TestUnits.cpp"' enthält aktuell 7 Funktionen um die Funktionalität der Schnittstelle zu testen.
+			\begin{enumerate}
+				\item Eine Funktion Namens "`wait"'. Bei dieser Funktion handelt es sich um eine Hilffunktion, die bei der Nutzung
+				      der Servomotoren dafür genutzt wird um das ablaufende Programm zu stoppen und eine bestimmte Zeit abzuwarten.
+				      Damit Servomotoren die Chance haben Bewegungen zu ende auszuführen, bevor sie einen neuen Befehl erhalten.
+				      Ähnlicher Effekt wird mit folgender Codezeile erreicht:
+				      \begin{lstlisting}[caption={[Wait] Aufforderung zum Warten}]			
+				      		while(conn.getMovingState());
+				      \end{lstlisting}
+				      Diese Zeile sorgt im Quellcode dafür, dass der nächste Befehl erst aufgeführt wird, wenn \underline{alle} Servomotoren 
+				      wieder stillstehen. Solange dies nicht der Fall ist, begindet sich das Programm in einer Schleife in der nichts getan wird.
+				      "`conn"' ist dabei das "`Pololu"'-Objekt, welches die serielle Verbindung zum physikalischen Controller ist.
+				\item Die Funktion "`testOpenClose"' dient dem Test der seriellen Verbindung selbst. In dieser Funktion werden unterschiedliche
+					  Tests mit der Verbindung durch geführt:
+					  \begin{itemize}
+					  	\setlength{\itemsep}{0pt}
+							\item[$\bullet$] Definieren eines "`Pololu"'-Objektes
+							\item[$\bullet$] Öffnen der definierten Verbindung
+							\item[$\bullet$] Öffnen der selben bereits offnen Verbindung
+							\item[$\bullet$] Schließen der Verbindung
+							\item[$\bullet$] Schließen derselben bereits geschlossenen Verbindung 
+							\item[$\bullet$] Neu initialisieren des "`Pololu"'-Objektes mit einem unbekannten Portnamen und öffnen dieser Verbindung
+							\item[$\bullet$] Neu initialisieren des "`Pololu"'-Objektes und mehrfachen Öffnen der Verbindung hintereinander (100x)
+					  \end{itemize}
+					  Mit diesen Test wird das Verhalten des "`Pololu"'-Objketes getestet und überprüft, ob es dem gewünschten Verhalten entspricht.
+					  Als ein Beispiel sei hier das Öffnen einer Verbindung genannt. Eine bereits geöffnete Verbindung zu einem COM-Port kann nicht 
+					  erneut geöffnet werden. Um sicherzustellen, das es nicht dazu kommen kann, wird zu beginn der "`openSerialCom"'-Funktion die
+					  Verbindung pauschal geschlossen. Damit ist sichergestellt, dass sich das Öffnen nicht doppelt.
+				\item In der Funktion "`testSetGetMethods"' wird das Schreiben und Lesen auf den Controller durch die Klassen "`ServoMotor"', "`Pololu"' und 
+				      "`SerialCom"' überprüft. \textbf{HINWEIS:} Diese Funktion darf nur in der Testumgebung ohne zusammengebauten Robotermanipulator getestet
+				      werden. Dieser Hinweis ist auch im Quellcode und der Doxygen-Dokumentation vermerkt.
+				\item Desweiten existieren zwei Funktionen (testMEXMovementSetting1 und testMEXMovementSetting2), die dem Test 
+					  am Robotermanipulator dienen. \textbf{HINWEIS:} Gründliches lesen der Doxygen-Dokumentation, da vor der Verwendung dieser Funktion
+					  der Robotermanipulator auf eine bestimmte Weise zusammengesetzt sein muss und Einstellungen im Maestro Control Center vorgenommen werden müssen.
+					  Die erste Version dient dem Test des Robotermanipulators mit angebautem Greifer. Die Funktion lässt den Robotermanipulator eine
+					  Box auf dem Untergrund ansteuern, hebt diese dann an und platziert sie an einer anderen Stelle. Die Version 2 ist mit dem 
+					  Stifthalter ausgestattet und fährt mit dem Stift 5 unterschiedliche Punkte auf dem Papier an. \textbf{HINWEIS:} Auch für diesen 
+					  Test sind umbauten und anpassungen der Einstellungen notwendig.
+			    \item Für den Einzeltest der Klasse "`SerialCom"' ist die Funktion "`testSerialCom"' vorhanden. Diese Testet die Funktionen der Klasse, initialisieren 
+			    	  einer seriellen Verbindung mit und ohne Nutzung des Konstruktors, Öffnen und Schließen der Verbindung, sowie das Schreiben und Lesen.
+			   	\item Die Funktion "`testPololu"' dient dem Test der Klasse "`Pololu"' vor allem, ob der Zugriff auf die "`protected"'-Funktionen möglich ist.
+			\end{enumerate}
+	
+	\section{}
 		Text
 
-	\section{D}
+	\section{Fazit und Ausblick}
 		Text
 		\newpage
 
@@ -200,7 +557,7 @@
 	\listoffigures
 		\newpage
 
-	%Eidesstattlische Versicherung
+	% Eidesstattlische Versicherung
 	\section{Eidesstattliche Versicherung}
 		Ich erkläre hiermit an Eides Statt, dass ich die vorliegende Arbeit selbständig und ohne 
 		Benutzung anderer als der angegebenen Hilfmittel angefertigt habe. Die aus fremden Quellen 
@@ -213,7 +570,1111 @@
 		(Willi Penner) \\
 		\newpage
 
-	\section{Anhang}
-		Text
+	% Anhang der Bachelorarbeit
+	\appendix
+		\section{Anhang}
+			% Datenblatt Servo SG90 
+			\subsection{Datenblatt MicroServo SG90}
+				\includegraphics[page=1,width=\textwidth]{sg90_datasheet.pdf} 
+				\newpage
+			% Datenblatt Servo DM1500
+			\subsection{Datenblatt Servo K-Power DM1500}
+				Ein Datenblatt für den Servomotor K-Power DM1500 ist im Netz nicht auffindbar gewesen. Die
+				Informationen in nachfolgender Tabelle entstammen der Webseite des Herstellers: \\
+				https://m.kpower.com/product/products\_rc\_servo\_airplane\_servos/DM1500.html (Stand: 10.07.2020)
+				\includegraphics[page=1,width=0.7\textwidth]{dm1500_datasheet.pdf}
+				\newpage 
+			% Datenblatt Servo SG90 
+			\subsection{Pololu Maestro Servo Controller User's Guide (Seiten 54-58)} \label{usersguide}
+				\includegraphics[page=1,width=\textwidth]{maestro54.pdf}  
+				\newpage
+				\includegraphics[page=1,width=1.0\textwidth]{maestro55.pdf}
+				\newpage  
+				\includegraphics[page=1,width=1.0\textwidth]{maestro56.pdf}  
+				\newpage	
+				\includegraphics[page=1,width=1.0\textwidth]{maestro57.pdf}  
+				\newpage
+				\includegraphics[page=1,width=1.0\textwidth]{maestro58.pdf}  
+				\newpage
+			% Interface ISerialCom
+			\subsection{Quellcode: Headerfile von ISerialCom und SerialCom} \label{SerialComHPP}
+				\begin{lstlisting}[caption={[ISerialCom] Interface: ISerialCom - Klasse: SerialCom}]
+					//=======================================================
+					// Name        : SerialCom.hpp
+					// Author      : Willi Penner
+					//
+					// Description : SerialCom header file. It contains the 
+					//               declaration of the ISerialCom interface 
+					//               and the SerialCom class
+					//=======================================================
+					#ifndef SERIALCOM_HPP_INCLUDED
+					#define SERIALCOM_HPP_INCLUDED
 
+					#ifdef _WIN32
+    					#include <windows.h>
+					#else
+						#include <iostream>
+					#endif
+
+					/** \brief Interface for a serial connection via a COM port
+ 					*  Prescribes at least the included pure virtual functions 
+ 					*  for initiating, opening, closing and writing a serial 
+ 					*  connection.
+ 					*/
+					class ISerialCom {
+					public:
+						virtual ~ISerialCom(){};
+    					virtual void initSerialCom(const char* portName, unsigned short baudRate) = 0;
+    					virtual bool openSerialCom() = 0;
+    					virtual bool closeSerialCom() = 0;
+    					virtual bool writeSerialCom(unsigned char command[], unsigned short sizeCommand, unsigned char *response, unsigned short sizeResponse) = 0;
+					};
+
+					/** \brief SerialCom is a class that inherits the 
+					*  functions from the ISerialCom interface. The 
+					*  functionality of the interface is expanded by
+					 *  the function getPort ().
+ 					*
+ 					*  \param portName_ : The port name is used to open 
+ 					*  a serial connection via the port name for the 
+ 					*  controller specified by the operating system.
+ 					*  \param baudRate_ : The baud rate determines the 
+ 					*  transmission speed at which communication between 
+ 					*  the PC and controller takes place.
+ 					*  \param port_ : If a serial connection is opened 
+ 					*  successfully, depending on the operating system, 
+ 					*  a HANDLE (under Windows) or an integer value 
+ 					*  (under Linux) is defined, via which the communication 
+ 					*  takes place.
+ 					*/
+					class SerialCom : public ISerialCom {
+					private:
+    					const char* portName_ = NULL;
+    					unsigned short baudRate_ = 0;
+    					/**< depending on the operating system, a HANDLE 
+    					 (under Windows) or an integer value (under Linux) 
+    					 for an open connection */
+    					#ifdef _WIN32
+        					HANDLE port_;
+    					#else
+        					int port_;
+    					#endif
+					public:
+    					/* Constructors: A constructor without 
+    					   transfer parameters, so that when used in the 
+    					   Pololu class or another class, an object of 
+    					   type SerialCom can be created without having 
+    					   to pass values to it. And a constructor for 
+    					   creating an object with start parameters for 
+    					   the port name and the baud rate.
+     				   	   portName : The port name is used to 
+     				   	   open a serial connection via the port name 
+     				   	   for the controller specified by the operating 
+     				   	   system.
+     			       	   baudRate : The baud rate determines 
+     		           	   the transmission speed at which communication 
+     				   	   between the PC and controller takes place.
+     				   	*/
+    					SerialCom();
+    					SerialCom(const char* portName, unsigned short baudRate);
+
+					    /** \brief "initSerialCom" is used to initiate 
+					    *  the SerialCom object with port name and baud rate.
+     				   	*  The function puts the object in the same state 
+     				   	*  as the constructor with transfer parameters.
+     				   	*  It can be used to change the port name and the 
+     				   	*  baud rate of a SerialCom object.
+     				   	*
+     				   	*  \param portName : The port name is used to 
+     				   	*  open a serial connection via the port name 
+     				   	*  for the controller specified by the operating 
+     				   	*  system.
+     				   	*  \param baudRate : The baud rate determines 
+     				   	*  the transmission speed at which communication
+     				   	*  between the PC and controller takes place.
+     				   	*/
+    					void initSerialCom(const char* portName, unsigned short baudRate);
+
+    					/** \brief Uses the set port name and the baud 
+    					*  rate of the class to open a serial connection.
+     					*  If the opening is successful, the value in 
+     					*  "port_" stands for the open connection and
+     					*  can be used for communication.
+     					*
+     					*  \return Returns TRUE on successful opening 
+     					*  of a serial connection, otherwise it returns
+     					*  FALSE.
+     					*/
+    					bool openSerialCom();
+					
+    					/** \brief Closes a serial connection.
+     					*
+     					*  \return Returns TRUE on successful closing 
+     					*  of a serial connection, otherwise it returns 
+     					*  FALSE.
+     					*/
+     					bool closeSerialCom();
+					
+					    /** \brief "writeSerialCom" is used to write 
+					    *  commands to the controller via the open serial 
+					    *  connection.
+     					*
+     					*  \param command[] : Contains the command to be 
+     					*  sent (size of 1, 2 or 4 bytes, depending on 
+     					*  the command).
+     					*  \param sizeCommand : Contains the size of the 
+     					*  command (1, 2 or 4).
+     					*  \param response : If the command to be sent 
+     					*  expects a return value from the controller, the 
+     					*  writeSerialCom is given a pointer to a response 
+     					*  array. This can be 1 or 2 bytes in size. If no 
+     					*  return value is expected, the pointer is NULL.
+     					*  \param sizeResponse : Contains the size of the 
+     					*  command (1 or 2, in case of no expected return 
+     					*  value it is 0).
+     					*
+     					*  \return Returns TRUE on successful writing to 
+     					*  a serial connection, otherwise it returns FALSE.
+     					*/
+    					bool writeSerialCom(unsigned char command[], unsigned short sizeCommand, unsigned char *response, unsigned short sizeResponse);
+
+					    /** \brief Returns the port HANDLE under Windows 
+					    *  or the integer value for the connection under Linux.
+     					*
+     					*  \return port_
+     					*/
+    					#ifdef _WIN32
+        					HANDLE getPort();
+    					#else
+        					int getPort();
+    					#endif
+					};
+					
+				\end{lstlisting}
+				\newpage
+			% Sourcefile SerialCom
+			\subsection{Quellcode: Sourcefile von SerialCom} \label{SerialComCPP}
+				\begin{lstlisting}[caption={[SerialCom] Klasse: SerialCom}]
+					//============================================================================
+					// Name        : SerialCom.cpp
+					// Author      : Willi Penner
+					//
+					// Description : SerialCom source file. It contains the definition of the
+					//               functions of the SerialCom class.
+					//============================================================================
+					#include "SerialCom.hpp"
+					#include <stdio.h>
+					#include <string>
+					#include <iostream>
+					
+					#ifdef _WIN32
+					    #include <windows.h>
+					#else
+						#include <fcntl.h>
+						#include <unistd.h>
+						#include <stdint.h>
+						#include <termios.h>
+						#include <stdbool.h>
+					#endif
+					
+					/** \brief Constructors: A constructor without transfer parameters, so that when used in the Pololu class
+					 *  or another class, an object of type SerialCom can be created without having to pass values to it.
+					 *  And a constructor for creating an object with start parameters for the port name and the baud rate.
+					 *
+					 *  \param portName : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					 *  \param baudRate : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					 */
+					SerialCom::SerialCom(){
+						portName_ = "";
+						baudRate_ = 0;
+						#ifdef _WIN32
+							port_ = NULL;
+						#else
+							port_ = 0;
+						#endif
+					}
+					SerialCom::SerialCom(const char* portName, unsigned short baudRate){
+						portName_ = portName;
+						baudRate_ = baudRate;
+						#ifdef _WIN32
+							port_ = NULL;
+						#else
+							port_ = 0;
+						#endif
+					}
+					
+					/** \brief "initSerialCom" is used to initiate the SerialCom object with port name and baud rate.
+					 *  The function puts the object in the same state as the constructor with transfer parameters.
+					 *  It can be used to change the port name and the baud rate of a SerialCom object.
+					 *
+					 *  \param portName : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					 *  \param baudRate : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					 */
+					void SerialCom::initSerialCom(const char* portName, unsigned short baudRate){
+					    /**< Before a serial connection is reinitialized, a possible open connection is closed. */
+					    #ifdef _WIN32
+					        CloseHandle(port_);
+					    #else
+					        close(port_);
+					    #endif
+					    portName_ = portName;
+					    baudRate_ = baudRate;
+					}
+					
+					/** \brief Uses the set port name and the baud rate of the class to open a serial connection.
+					 *  If the opening is successful, the value in "port_" stands for the open connection and
+					 *  can be used for communication.
+					 *
+					 *  \return Returns TRUE on successful opening of a serial connection, otherwise it returns FALSE.
+					 */
+					bool SerialCom::openSerialCom(){
+					    #ifdef _WIN32
+					        /**< Opening a serial connection in windows. */
+					        bool success = FALSE;
+					        DCB state;
+					
+					        /**< If there is still an open connection, it will be closed before opening it again. */
+					        CloseHandle(port_);
+					        /**< Opens a serial connection using the CreateFileA function from <windows.h>. Port_ is
+					        opened with read and write access. */
+					        port_ = CreateFileA(portName_, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+					        if (port_ == INVALID_HANDLE_VALUE){
+					            throw std::string("SerialCom::openSerialCom: Failed to open port.\n");
+					            return 0;
+					        }
+					        /**< Flushes the file buffer of the opened connection. */
+					        success = FlushFileBuffers(port_);
+					        if (!success)
+					        {
+					            throw std::string("SerialCom::openSerialCom: Failed to flush file buffer.\n");
+					            CloseHandle(port_);
+					            return 0;
+					        }
+					        /**< Configure read and write operations to time out after 100 ms. */
+					        COMMTIMEOUTS timeouts = { 0 };
+					        timeouts.ReadIntervalTimeout = 0;
+					        timeouts.ReadTotalTimeoutConstant = 100;
+					        timeouts.ReadTotalTimeoutMultiplier = 0;
+					        timeouts.WriteTotalTimeoutConstant = 100;
+					        timeouts.WriteTotalTimeoutMultiplier = 0;
+					        success = SetCommTimeouts(port_, &timeouts);
+					        if (!success)
+					        {
+					            throw std::string("SerialCom::openSerialCom: Failed to set serial timeouts.\n");
+					            CloseHandle(port_);
+					            return 0;
+					        }
+					        /**< Reads the connection status of the serial connection. If the reading of
+					        the connection status was successful, the baud rate for the communication is set. */
+					        state.DCBlength = sizeof(DCB);
+					        success = GetCommState(port_, &state);
+					        if (!success)
+					        {
+					            throw std::string("SerialCom::openSerialCom: Failed to get serial settings.\n");
+					            CloseHandle(port_);
+					            return 0;
+					        }
+					        state.BaudRate = baudRate_;
+					        success = SetCommState(port_, &state);
+					        if (!success)
+					        {
+					            throw std::string("SerialCom::openSerialCom: Failed to set serial settings.\n");
+					            CloseHandle(port_);
+					            return 0;
+					        }
+					        return 1;
+					    #else
+					        bool success = false;
+					
+					        /**< If there is still an open connection, it will be closed before opening it again. */
+					        close(port_);
+					        /**< Opens a serial connection using the CreateFileA function from <windows.h>. Port_ is
+					             opened with read and write access. */
+					        port_ = open(portName_, O_RDWR | O_NOCTTY); //you have to set the permission for the /dev/ttyACM0
+					        if (port_ == -1){
+					        	throw std::string("SerialCom::openSerialCom: Failed to open port.\n");
+					            return 0;
+					        }
+					        /**< Flushes the file buffer of the opened connection. */
+					        success = tcflush(port_, TCIOFLUSH);
+					        if (success){
+					        	throw std::string("SerialCom::openSerialCom: Failed to flush file buffer.\n");
+					        	close(port_);
+					        	return 0;
+					        }
+					        // Get the current configuration of the serial port.
+					        struct termios options;
+					        success = tcgetattr(port_, &options);
+					        if (success){
+					        	throw std::string("SerialCom::openSerialCom: Failed to get serial settings.\n");
+					            close(port_);
+					            return 0;
+					        }
+					        // Turn off any options that might interfere with our ability to send and
+					        // receive raw binary bytes.
+					        options.c_iflag &= ~(INLCR | IGNCR | ICRNL | IXON | IXOFF);
+					        options.c_oflag &= ~(ONLCR | OCRNL);
+					        options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+					
+					        // Set up timeouts: Calls to read() will return as soon as there is
+					        // at least one byte available or when 100 ms has passed.
+					        options.c_cc[VTIME] = 1;
+					        options.c_cc[VMIN] = 0;
+					
+					        // This code only supports certain standard baud rates. Supporting
+					        // non-standard baud rates should be possible but takes more work.
+					        cfsetospeed(&options, B9600);
+					        cfsetispeed(&options, cfgetospeed(&options));
+					        success = tcsetattr(port_, TCSANOW, &options);
+					        if (success){
+					        	throw std::string("SerialCom::openSerialCom: Failed to set serial settings.\n");
+					            close(port_);
+					            return 0;
+					        }
+					        return 1;
+					    #endif
+					}
+					
+					/** \brief Closes a serial connection.
+					 *
+					 *  \return Returns TRUE on successful closing of a serial connection, otherwise it returns FALSE.
+					 */
+					bool SerialCom::closeSerialCom(){
+					    #ifdef _WIN32
+							if (CloseHandle(port_) == 0){
+								throw std::string("SerialCom::closeSerialCom: Failed to close port.\n");
+							    return 0;
+							}
+							return 1;
+					    #else
+							return close(port_);
+					    #endif
+					}
+					
+					/** \brief "writeSerialCom" is used to write commands to the controller via the open serial connection.
+					 *
+					 * \param command[] : Contains the command to be sent (size of 1, 2 or 4 bytes, depending on the command).
+					 * \param sizeCommand : Contains the size of the command (1, 2 or 4).
+					 * \param response : If the command to be sent expects a return value from the controller, the writeSerialCom is given a pointer to a response array. This can be 1 or 2 bytes in size. If no return value is expected, the pointer is NULL.
+					 * \param sizeResponse : Contains the size of the command (1 or 2, in case of no expected return value it is 0).
+					 *
+					 * \return Returns TRUE on successful writing to a serial connection, otherwise it returns FALSE.
+					 */
+					bool SerialCom::writeSerialCom(unsigned char command[], unsigned short sizeCommand, unsigned char *response, unsigned short sizeResponse){
+						//** Check the length of the command */
+						if ((sizeCommand != 1) && (sizeCommand != 2) && (sizeCommand != 4)){
+							throw std::string("SerialCom::writeSerialCom: wrong parameter sizeCommand, allowed parameter 1,2 or 4.");
+						}
+					
+						#ifdef _WIN32
+					        DWORD bytesTrasfered; //Is given to the write or read command as a pointer. After executing the WriteFile or ReadFile, bytesTranfered contains the number of bytes transmitted or received.
+					        bool success = 0;
+					
+					        //** Sending the command to the controller via port_. */
+					        success = WriteFile(port_, command, sizeCommand, &bytesTrasfered, NULL);
+					        if (!success){
+					            throw std::string("SerialCom::writeSerialCom: Failed to write to port.");
+					            return 0;
+					        }
+					
+					        //** Check whether data needs to be read. */
+					        if (sizeResponse > 0){
+					            success = ReadFile(port_, (void *)response, sizeResponse, &bytesTrasfered, NULL);
+					        }else{
+					            return 1; //No need to read data. Confirmation of the successful writing of the data.
+					        }
+					        if (!success){
+					            throw std::string("SerialCom::writeSerialCom: Failed to read from port.");
+					            return 0;
+					        }
+					        return 1; //Confirmation that data was written and read data were saved in the response array.
+					    #else
+					        //** Sending the command to the controller via port_. */
+					        if(write(port_, command, sizeCommand) == -1){
+					        	throw std::string("SerialCom::writeSerialCom: Failed to write to port.");
+					            return 0;
+					        }
+					        //** Check whether data needs to be read. */
+					        if (sizeResponse > 0){
+					        	if(read(port_, (void *)response, sizeResponse) != sizeResponse)
+					        	{
+					        		throw std::string("SerialCom::writeSerialCom: Failed to read from port.");
+					        		return 0;
+					        	}
+					        }else{
+					        	return 1;
+					        }
+					        return 1;
+					    #endif
+					}
+					
+					/** \brief Returns the port HANDLE under Windows or the integer value for the connection under Linux.
+					 *
+					 * \return port_
+					 */
+					#ifdef _WIN32
+					    HANDLE SerialCom::getPort(){
+					#else
+					    int SerialCom::getPort(){
+					#endif
+					    return port_;
+					}
+				\end{lstlisting}	
+				\newpage
+			% Interface IPololu
+			\subsection{Quellcode: Headerfile von IPololu und Pololu} \label{PololuHPP}
+				\begin{lstlisting}[caption={[IPololu] Interface: IPololu - Klasse: Pololu}]
+					//============================================================================
+					// Name        : Pololu.hpp
+					// Author      : Willi Penner
+					//
+					// Description : Pololu header file. It contains the declaration of the
+					//               IPololu interface and the Pololu class
+					//============================================================================
+					#ifndef POLOLU_HPP_INCLUDED
+					#define POLOLU_HPP_INCLUDED
+					
+					#include "SerialCom.hpp"
+					
+					/** \brief Interface to control a Pololu controller. The interface
+					 *  provides the basic functions for the control of servo motors.
+					 *
+					 */
+					class IPololu {
+					protected:
+						virtual bool setPosition(unsigned short servo, unsigned short goToPosition) = 0;
+						virtual bool setSpeed(unsigned short servo, unsigned short goToSpeed) = 0;
+						virtual bool setAcceleration(unsigned short servo, unsigned short goToAcceleration) = 0;
+						virtual unsigned short getPosition(unsigned short servo) = 0;
+					public:
+						virtual ~IPololu(){};
+					    virtual bool getMovingState() = 0;
+					};
+					
+					/** \brief Class for a Pololu object that contains a serial connection and provides basic functions
+					 *  for programming the controller.
+					 *
+					 *  \param serialCom = Is an object of the SerialCom class without initialization of port name and baud rate, the "port_" is NULL.
+					 */
+					class Pololu : public IPololu {
+					friend class ServoMotor;
+					protected:
+					    SerialCom serialCom;
+					
+					    /** \brief Funktion is used to move a specific servo to a new position.
+					    *
+					    *  \param servo = Servo to move
+					    *  \param goToPosition = New position to be approached. The value for the new position is calculated from the position in microseconds times 4 (e.g. new position should be 1500 microseconds, then 6000 must be set in the function as new position)
+					    *
+					    *  \return The return value of the function is 1 if the new position was successfully set and 0 if an error occurred.
+					    *
+					    */
+					    bool setPosition(unsigned short servo, unsigned short goToPosition);
+					
+					    /** \brief Function is used to set the speed for a servo with which it should move.
+					    *
+					    *  \param servo = Servo to set speed
+					    *  \param goToSpeed = Speed of the servo (speed value 1 = 0.25us / 10ms or speed value 100 = 25us / 10ms). A speed value of 0 means infinite speed, i.e. the maximum speed of the servo.
+					    *
+					    *  \return The return value of the function is 1 if the new speed was successfully set and 0 if an error occurred.
+					    *
+					    */
+					    bool setSpeed(unsigned short servo, unsigned short goToSpeed);
+					
+					    /** \brief Function is used to set the acceleration for a servo with which it should reach the set speed.
+					    *
+					    *  \param servo = Servo to set acceleration
+					    *  \param goToAcceleration = Acceleration of the servo (acceleration value 1 = 0.25us / 10ms / 80ms or speed value 100 = 25us / 10ms / 80ms). A speed value of 0 means infinite acceleration, i.e. the maximum acceleration of the servo.
+					    *
+					    *  \return The return value of the function is 1 if the new acceleration was successfully set and 0 if an error occurred.
+					    *
+					    */
+					    bool setAcceleration(unsigned short servo, unsigned short goToAcceleration);
+					
+					    /** \brief Function is used to read out the current position of a particular servo.
+					    *
+					    * 	\param servo = Servo whose current position is to be read out.
+					    *
+					    *	\return The return value is the current position of the selected servo. The position value supplied by the controller must still be multiplied by 4.
+					    *
+					    */
+					    unsigned short getPosition(unsigned short servo);
+					public:
+					    /** \brief Constructor executes serialCom.initSerialCom to initialize the serial connection. An object of the Pololu class must be
+					     *  initialized with the port name and baud rate using the constructor.
+					     *
+					     *  \param portName : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					     *  \param baudRate : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					     *
+					     */
+					    Pololu(const char* portName, unsigned short baudRate);
+					
+					    /** \brief Used to change the connection data. Sets the serial connection in the same state as the constructor, but with a new port name and baud rate
+					     *
+					     *  \param portName : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					     *  \param baudRate : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					     *
+					     */
+					    void initConnection(const char* portName, unsigned short baudRate);
+					
+					    /** \brief Functions are used to open and close the serial connection. Functions only call
+					     * the openSerialCom and closeSerialCom functions of the serialCom object.
+					     *
+					     * \return Value is 1 when opening or closing was successful and 0 when an error occured.
+					     *
+					     */
+					    bool openConnection();
+					    bool closeConnection();
+					
+					    /** \brief Function provides the movement status of all connected servos.
+					     *
+					     *	\return The return value is 1 while a servo is still in motion and 0 when all servos are at a standstill.
+					     *
+					     */
+					    bool getMovingState();
+					};
+					
+					#endif // POLOLU_HPP_INCLUDED
+				\end{lstlisting}
+				\newpage
+			% Sourcefile Pololu
+			\subsection{Quellcode: Sourcefile von Pololu} \label{PololuCPP}
+				\begin{lstlisting}[caption={[Pololu] Klasse: Pololu}]
+					//============================================================================
+					// Name        : Pololu.hpp
+					// Author      : Willi Penner
+					//
+					// Description : Pololu source file. It contains the definition of the
+					//               functions of the Pololu class.
+					//============================================================================
+					#include "Pololu.hpp"
+					#include "SerialCom.hpp"
+					#include <string>
+					#include <iostream>
+					
+					/** \brief Constructor executes serialCom.initSerialCom to initialize the serial connection. An object of the Pololu class must be
+					 *  initialized with the port name and baud rate using the constructor.
+					 *
+					 *  \param portName : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					 *  \param baudRate : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					 *
+					 */
+					Pololu::Pololu(const char* portName, unsigned short baudRate){serialCom.initSerialCom(portName, baudRate);}
+					
+					/** \brief Function is used to open the serial connection. Function only calls
+					 * the openSerialCom function of the serialCom object.
+					 *
+					 * \return The return value is 1 when opening the port was successful, 0 when an error occurred.
+					 *
+					 */
+					bool Pololu::openConnection(){
+					    try
+					    {
+					        serialCom.openSerialCom();
+					    }
+					    catch (std::string &errorMessage)
+					    {
+					        std::cout << errorMessage;
+					        return 0;
+					    }
+					    return 1;
+					}
+					
+					/** \brief Function is used to close the serial connection. Function only calls
+					 * the closeSerialCom function of the serialCom object.
+					 *
+					 * \return The return value is 1 when closing the port was successful, 0 when an error occurred.
+					 *
+					 */
+					bool Pololu::closeConnection(){
+					    try
+					    {
+					        serialCom.closeSerialCom();
+					    }
+					    catch (std::string &errorMessage)
+					    {
+					        std::cout << errorMessage;
+					        return 0;
+					    }
+					    return 1;
+					}
+					
+					/** \brief Used to change the connection data. Sets the serial connection in the same state as the constructor, but with a new port name and baud rate
+					 *
+					 *  \param portName : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					 *  \param baudRate : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					 *
+					 */
+					void Pololu::initConnection(const char* portName, unsigned short baudRate){serialCom.initSerialCom(portName, baudRate);}
+					
+					/** \brief Funktion is used to move a specific servo to a new position.
+					 *
+					 *  \param servo = Servo to move
+					 *  \param goToPosition = New position to be approached. The value for the new position is calculated from the position in microseconds times 4 (e.g. new position should be 1500 microseconds, then 6000 must be set in the function as new position)
+					 *
+					 *  \return The return value of the function is 1 if the new position was successfully set and 0 if an error occurred.
+					 *
+					 */
+					bool Pololu::setPosition(unsigned short servo, unsigned short goToPosition){
+					    /* Generates the command for the controller.
+					     * 0x84 = Pololu command for setting the position
+					     * servo = servo to address as a transfer parameter
+					     * goToPositiion = divided into 2 bytes, first the low bits, then the high bits
+					     */
+					    unsigned short sizeCommand = 4;
+					    unsigned char command[] = {0x84, (unsigned char)servo, (unsigned char)(goToPosition & 0x7F), (unsigned char)((goToPosition >> 7) & 0x7F)};
+					    try
+					    {
+					        serialCom.writeSerialCom(command, sizeCommand, NULL, 0);
+					    }
+					    catch (std::string &errorMessage)
+					    {
+					        throw std::string("Pololu::setPosition: " + errorMessage);
+					        return 0;
+					    }
+					    catch(...)
+					    {
+					        throw std::string("Pololu::setPosition: Unknown error, while writing to port.");
+					        return 0;
+					    }
+					    return 1;
+					}
+					
+					/** \brief Function is used to set the speed for a servo with which it should move.
+					 *
+					 *  \param servo = Servo to set speed
+					 *  \param goToSpeed = Speed of the servo (speed value 1 = 0.25us / 10ms or speed value 100 = 25us / 10ms). A speed value of 0 means infinite speed, i.e. the maximum speed of the servo.
+					 *
+					 *  \return The return value of the function is 1 if the new speed was successfully set and 0 if an error occurred.
+					 *
+					 */
+					bool Pololu::setSpeed(unsigned short servo, unsigned short goToSpeed){
+					    /* Generates the command for the controller.
+					     * 0x87 = Pololu command for setting the speed
+					     * servo = servo to address as a transfer parameter
+					     * goToSpeed = divided into 2 bytes, first the low bits, then the high bits
+					     */
+					    unsigned short sizeCommand = 4;
+					    unsigned char command[] = {0x87, (unsigned char)servo, (unsigned char)(goToSpeed & 0x7F), (unsigned char)((goToSpeed >> 7) & 0x7F)};
+					    try
+					    {
+					        serialCom.writeSerialCom(command, sizeCommand, NULL, 0);
+					    }
+					    catch (std::string &errorMessage)
+					    {
+					        throw std::string("Pololu::setSpeed: " + errorMessage);
+					        return 0;
+					    }
+					    catch(...)
+					    {
+					        throw std::string("Pololu::setSpeed: Unknown error, while writing to port.");
+					        return 0;
+					    }
+					    return 1;
+					}
+					
+					/** \brief Function is used to set the acceleration for a servo with which it should reach the set speed.
+					 *
+					 *  \param servo = Servo to set acceleration
+					 *  \param goToAcceleration = Acceleration of the servo (acceleration value 1 = 0.25us / 10ms / 80ms or speed value 100 = 25us / 10ms / 80ms). A speed value of 0 means infinite acceleration, i.e. the maximum acceleration of the servo.
+					 *
+					 *  \return The return value of the function is 1 if the new acceleration was successfully set and 0 if an error occurred.
+					 *
+					 */
+					bool Pololu::setAcceleration(unsigned short servo, unsigned short goToAcceleration){
+					    /* Generates the command for the controller.
+					     * 0x89 = Pololu command for setting the acceleration
+					     * servo = servo to address as a transfer parameter
+					     * goToAcceleration = divided into 2 bytes, first the low bits, then the high bits
+					     */
+					    unsigned short sizeCommand = 4;
+					
+					    unsigned char command[] = {0x89, (unsigned char)servo, (unsigned char)(goToAcceleration & 0x7F), (unsigned char)((goToAcceleration >> 7) & 0x7F)};
+					    try
+					    {
+					        serialCom.writeSerialCom(command, sizeCommand, NULL, 0);
+					    }
+					    catch (std::string &errorMessage)
+					    {
+					        throw std::string("Pololu::setAcceleration: " + errorMessage);
+					        return 0;
+					    }
+					    catch(...)
+					    {
+					        throw std::string("Pololu::setAcceleration: Unknown error, while writing to port.");
+					        return 0;
+					    }
+					    return 1;
+					}
+					
+					/** \brief Function is used to read out the current position of a particular servo.
+					 *
+					 * 	\param servo = Servo whose current position is to be read out.
+					 *
+					 *	\return The return value is the current position of the selected servo. The position value supplied by the controller must still be multiplied by 4.
+					 *
+					 */
+					unsigned short Pololu::getPosition(unsigned short servo){
+					    /* Generates the command for the controller.
+					     * 0x90 = Pololu command for reading out the position
+					     * servo = servo to address as a transfer parameter
+					     */
+					    unsigned short sizeCommand = 2;
+					    unsigned short sizeResponse = 2;
+					    unsigned char response[sizeResponse];
+					
+					    unsigned char command[] = {0x90, (unsigned char)servo};
+					    try
+					    {
+					        serialCom.writeSerialCom(command, sizeCommand, response, sizeResponse);
+					    }
+					    catch (std::string &errorMessage)
+					    {
+					        throw std::string("Pololu::getPosition: " + errorMessage);
+					    }
+					    catch(...)
+					    {
+					        throw std::string("Pololu::getPosition: Unknown error, while writing/reading to port.");
+					    }
+					
+					    return response[0] + 256 * response[1];
+					}
+					
+					/** \brief Function provides the movement status of all connected servos.
+					 *
+					 *	\return The return value is 1 while a servo is still in motion and 0 when all servos are at a standstill.
+					 *
+					 */
+					bool Pololu::getMovingState(){
+					    /* Generates the command for the controller.
+					     * 0x93 = Pololu command for reading out the movement of all servos
+					     */
+					    unsigned short sizeCommand = 1;
+					    unsigned short sizeResponse = 1;
+					    unsigned char response[sizeResponse];
+					
+					    unsigned char command[] = {0x93};
+					    try
+					    {
+					        serialCom.writeSerialCom(command, sizeCommand, response, sizeResponse);
+					    }
+					    catch (std::string &errorMessage)
+					    {
+					        throw std::string("Pololu::getMovingState: " + errorMessage);
+					    }
+					    catch(...)
+					    {
+					        throw std::string("Pololu::getMovingState: Unknown error, while writing/reading to port.");
+					    }
+					    return response[0]; // The return value is 1 if a servo is still moving, 0 if there is no moving.
+					}					
+				\end{lstlisting}
+				\newpage
+			% Interface IServoMotor
+			\subsection{Quellcode: Headerfile von IServoMotor und ServoMotor} \label{ServoMotorHPP}
+				\begin{lstlisting}[caption={[IServoMotor] Interface: IServoMotor - Klasse: ServoMotor}]
+					//============================================================================
+					// Name        : SerialCom.hpp
+					// Author      : Willi Penner
+					//
+					// Description : SerialCom header file. It contains the declaration of the
+					//               ISerialCom interface and the SerialCom class
+					//============================================================================
+					#ifndef SERIALCOM_HPP_INCLUDED
+					#define SERIALCOM_HPP_INCLUDED
+					
+					#ifdef _WIN32
+					    #include <windows.h>
+					#else
+						#include <iostream>
+					#endif
+					
+					/** \brief Interface for a serial connection via a COM port
+					 *  Prescribes at least the included pure virtual functions for initiating,
+					 *  opening, closing and writing a serial connection.
+					 */
+					class ISerialCom {
+					public:
+						virtual ~ISerialCom(){};
+					    virtual void initSerialCom(const char* portName, unsigned short baudRate) = 0;
+					    virtual bool openSerialCom() = 0;
+					    virtual bool closeSerialCom() = 0;
+					    virtual bool writeSerialCom(unsigned char command[], unsigned short sizeCommand, unsigned char *response, unsigned short sizeResponse) = 0;
+					};
+					
+					/** \brief SerialCom is a class that inherits the functions from the ISerialCom interface.
+					 *  The functionality of the interface is expanded by the function getPort ().
+					 *
+					 *  \param portName_ : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					 *  \param baudRate_ : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					 *  \param port_ : If a serial connection is opened successfully, depending on the operating system, a HANDLE (under Windows) or an integer value (under Linux) is defined, via which the communication takes place.
+					 */
+					class SerialCom : public ISerialCom {
+					private:
+					    const char* portName_ = NULL;
+					    unsigned short baudRate_ = 0;
+					    /**< depending on the operating system, a HANDLE (under Windows) or an integer value (under Linux) for an open connection */
+					    #ifdef _WIN32
+					        HANDLE port_;
+					    #else
+					        int port_;
+					    #endif
+					public:
+					    /** \brief Constructors: A constructor without transfer parameters, so that when used in the Pololu class
+					     *  or another class, an object of type SerialCom can be created without having to pass values to it.
+					     *  And a constructor for creating an object with start parameters for the port name and the baud rate.
+					     *
+					     *  \param portName : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					     *  \param baudRate : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					     */
+					    SerialCom();
+					    SerialCom(const char* portName, unsigned short baudRate);
+					
+					    /** \brief "initSerialCom" is used to initiate the SerialCom object with port name and baud rate.
+					     *  The function puts the object in the same state as the constructor with transfer parameters.
+					     *  It can be used to change the port name and the baud rate of a SerialCom object.
+					     *
+					     *  \param portName : The port name is used to open a serial connection via the port name for the controller specified by the operating system.
+					     *  \param baudRate : The baud rate determines the transmission speed at which communication between the PC and controller takes place.
+					     */
+					    void initSerialCom(const char* portName, unsigned short baudRate);
+					
+					    /** \brief Uses the set port name and the baud rate of the class to open a serial connection.
+					     *  If the opening is successful, the value in "port_" stands for the open connection and
+					     *  can be used for communication.
+					     *
+					     *  \return Returns TRUE on successful opening of a serial connection, otherwise it returns FALSE.
+					     */
+					    bool openSerialCom();
+					
+					    /** \brief Closes a serial connection.
+					     *
+					     *  \return Returns TRUE on successful closing of a serial connection, otherwise it returns FALSE.
+					     */
+					     bool closeSerialCom();
+					
+					    /** \brief "writeSerialCom" is used to write commands to the controller via the open serial connection.
+					     *
+					     * \param command[] : Contains the command to be sent (size of 1, 2 or 4 bytes, depending on the command).
+					     * \param sizeCommand : Contains the size of the command (1, 2 or 4).
+					     * \param response : If the command to be sent expects a return value from the controller, the writeSerialCom is given a pointer to a response array. This can be 1 or 2 bytes in size. If no return value is expected, the pointer is NULL.
+					     * \param sizeResponse : Contains the size of the command (1 or 2, in case of no expected return value it is 0).
+					     *
+					     * \return Returns TRUE on successful writing to a serial connection, otherwise it returns FALSE.
+					     */
+					    bool writeSerialCom(unsigned char command[], unsigned short sizeCommand, unsigned char *response, unsigned short sizeResponse);
+					
+					    /** \brief Returns the port HANDLE under Windows or the integer value for the connection under Linux.
+					     *
+					     *
+					     * \return port_
+					     */
+					    #ifdef _WIN32
+					        HANDLE getPort();
+					    #else
+					        int getPort();
+					    #endif
+					};
+					
+					#endif // SERIALCOM_HPP_INCLUDED
+										
+				\end{lstlisting}
+				\newpage
+			\subsection{Quellcode: Sourcefile ServoMotor} \label{ServoMotorCPP}
+				\begin{lstlisting}[caption={[ServoMotor] Auszug aus dem Sourcefile von ServoMotor}]
+					//============================================================================
+					// Name        : ServoMotor.cpp
+					// Author      : Willi Penner
+					//
+					// Description : ServoMotor source file. It contains the definition of the
+					//               functions of the ServoMotor class.
+					//============================================================================
+					#include "ServoMotor.hpp"
+					#include "Pololu.hpp"
+					#include <iostream>
+					#include <cmath>
+					
+					/** \brief ServoMotor class constructor. An object of the ServoMotor type must be initiated via the constructor.
+					 *
+					 * 	\param servo = is the slot number on the controller board to which the servo is connected
+					 *  \param startingPosition = is the center position of the servo motor (must be determined in the Pololu Maestro Control Center)
+					 *  \param delta = is the range of motion that the servo can reach from the center position
+					 *  \param *connection = is a pointer to the Pololu object for the serial connection
+					 *
+					 * */
+					ServoMotor::ServoMotor(unsigned short servo, unsigned short startingPosition, unsigned short delta, Pololu *connection){
+						servoNumber_ = servo-1;
+						startingPosition_ = startingPosition;
+						delta_ = delta;
+						connection_ = connection;
+					}
+					
+					/** \brief Returns the port to which the servo is connected to the controller board.
+					 *
+					 *  \return The return value is the servoNumber+1 because the internal counting of the controller starts at 0.
+					 *
+					 */
+					unsigned short ServoMotor::getServoNumber(){
+						return servoNumber_+1;
+					}
+					
+					/** \brief Returns the minimum position the servo is able to reach.
+					 *
+					 *  \return The return value is the set startingPosition minus the set delta
+					 *
+					 */
+					unsigned short ServoMotor::getMinPos (){
+						return startingPosition_ - delta_ ;
+					}
+					
+					/** \brief Returns the center position of the servo.
+					 *
+					 *  \return The return value is the set startingPosition.
+					 *
+					 */
+					unsigned short ServoMotor::getMidPos (){
+						return startingPosition_;
+					}
+					
+					/** \brief Returns the maximum position the servo is able to reach.
+					 *
+					 *  \return The return value is the set startingPosition plus the set delta.
+					 *
+					 */
+					unsigned short ServoMotor::getMaxPos (){
+						return startingPosition_ + delta_ ;
+					}
+					
+					/** \brief Function causes the servo to move to a specific new position (position
+					 *  is specified as an absolute value in a range from 5860 +- 3600).
+					 *
+					 *  \param newPosition as an absolut value
+					 *
+					 *  \return The return value is the return value of the setPosition funktion of the Pololu object.
+					 */
+					bool ServoMotor::setPositionInAbs(unsigned short newPosition){
+						if (newPosition > (startingPosition_ + delta_) || newPosition < (startingPosition_ - delta_)){
+							throw std::string("ServoMotor::setPositionInAbs: Abs position is out of range (startingPosition +- delta).");
+						}else{
+							return connection_->setPosition(servoNumber_, newPosition);
+						}
+					}
+					
+					/** \brief Function causes the servo to move to a specific new position (position is set with a value between -90 and 90 degrees).
+					 *
+					 *  \param newPosition in degrees
+					 *
+					 *  \return The return value is the return value of the setPosition funktion of the Pololu object.
+					 */
+					bool ServoMotor::setPositionInDeg(short newPosition){
+						if (newPosition > maxDeg || newPosition < -maxDeg){
+							throw std::string("ServoMotor::setPositionInDeg: Degree is out of range (-90 - 90).");
+						}else{
+							return connection_->setPosition(servoNumber_, startingPosition_ + newPosition * conFactorDegToPos * conFactorMyToPos);
+						}
+					}
+					
+					/** \brief Function causes the servo to move to a specific new position (position is set with a radiant between -PI/2 and PI/2).
+					 *
+					 *  \param newPosition as radiant
+					 *
+					 *  \return The return value is the return value of the setPosition funktion of the Pololu object.
+					 */
+					bool ServoMotor::setPositionInRad(float newPosition){
+						// Since float numbers cannot be compared, the radians are converted to an int. The factor 100 sets the accuracy to 2 digits after the decimal point.
+						if ((int)(100 * newPosition) > (int)(100 * (maxRad)) || (int)(100 * newPosition) < (int)(100 * (-maxRad))){
+							throw std::string("ServoMotor::setPositionInRad: Radiant is out of range (-PI/2 - +PI/2).");
+						}else{
+							// first the neu radiant position is converted to degree (newPosition * 180 / M_PI)
+							return connection_->setPosition(servoNumber_, (startingPosition_ + (newPosition * 180 / M_PI) * conFactorDegToPos * conFactorMyToPos));
+						}
+					}
+					
+					/** \brief Sets the speed at which the servo should move (speed range is between 1 and 255)
+					 *
+					 *  \param newSpeed = Speed value (1 is (0.25 microseconds) / (10 milliseconds),
+					 *  255 is (63,75 microseconds) / (10 milliseconds))
+					 *
+					 *  \return The return value is the return value of the setSpeed funktion of the Pololu object.
+					 */
+					bool ServoMotor::setSpeed(unsigned short newSpeed){
+						if (newSpeed > maxSpeed || newSpeed < minSpeed){
+							throw std::string("ServoMotor::setSpeed: Speed is out of range (1 - 255).");
+						}else{
+							return connection_->setSpeed(servoNumber_, newSpeed);
+						}
+					}
+					
+					/** \brief Sets the acceleration with which the set speed should be reached (acceleration range is between 1 and 255)
+					 *
+					 *  \param newAcceleration = Acceleration value (1 is (0.25 microseconds) / (10 milliseconds) / (80 milliseconds),
+					 *  255 is (63,75 microseconds) / (10 milliseconds) / (80 milliseconds))
+					 *
+					 *  \return The return value is the return value of the setAcceleration funktion of the Pololu object.
+					 */
+					bool ServoMotor::setAccelaration(unsigned short newAcceleration){
+						if (newAcceleration > maxAcceleration || newAcceleration < minAcceleration){
+							throw std::string("ServoMotor::setAcceleration: Acceleration is out of range (1 - 255).");
+						}else{
+							return connection_->setAcceleration(servoNumber_, newAcceleration);
+						}
+					}
+					
+					/** \brief Returns the position of the servo as absolute value.
+					 *
+					 *  \return The return value is the return value of the getPosition function of the Pololu object.
+					 *
+					 */
+					unsigned short ServoMotor::getPositionInAbs(){
+						return connection_->getPosition(servoNumber_);
+					}
+					
+					/** \brief Returns the position of the servo in degrees.
+					 *
+					 *  \return The return value is the return value of the getPosition function of the Pololu object converted into degrees.
+					 *
+					 */
+					short ServoMotor::getPositionInDeg(){
+						return (connection_->getPosition(servoNumber_) / conFactorMyToPos - startingPosition_) / conFactorDegToPos;
+					}
+					
+					/** \brief Returns the position of the servo as radiant.
+					 *
+					 *  \return The return value is the return value of the getPosition function of the Pololu object converted into radiant.
+					 *
+					 */
+					float ServoMotor::getPositionInRad(){
+						return (connection_->getPosition(servoNumber_) / conFactorMyToPos - startingPosition_) * M_PI / conFactorDegToPos / 180;
+					}
+					
+					/** \brief Shows which settings have to be made in the Pololu Maestro Control Center for the servo,
+					 *  based on the starting position and the delta for the specific servo.
+					 */
+					void ServoMotor::showPololuValues (unsigned short& min, unsigned short& mid, unsigned short& max){
+						min = (unsigned short)((startingPosition_ - delta_) / conFactorMyToPos);
+						max = (startingPosition_ + delta_) / conFactorMyToPos;
+						mid = (startingPosition_) / conFactorMyToPos;
+					}
+				\end{lstlisting}
+				\newpage
+			% Interface IServoMotor
+			\subsection{Quellcode: Headerfile TestUnits.hpp} \label{TestUnitsHPP}
+				\begin{lstlisting}[caption={[TestUnits] Auszug aus dem Headerfile von TestUnits}]
+					//============================================================================
+					// Name        : TestUnits.hpp
+					// Author      : Willi Penner
+					//
+					// Description :
+					//============================================================================
+					#ifndef TESTUNITS_HPP_
+					#define TESTUNITS_HPP_
+					
+					void wait(unsigned long milliseconds);
+					void testOpenClose ();
+					void testSetGetMethods ();
+					void testMEXMovementSetting1 ();
+					void testMEXMovementSetting2 ();
+					
+					#endif /* TESTUNITS_HPP_ */
+				\end{lstlisting}
 \end{document}
