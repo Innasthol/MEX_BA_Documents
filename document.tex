@@ -104,7 +104,12 @@
 	\rfoot{}
 	
 	\section{Abstract}
-		Text
+		Das Ziel der vorliegenden Bachelorarbeit, die im Fachbereich Ingenierwissenschaften und Mathematik an der Fachhochschule Bielefeld durchgeführt worden
+		ist, war die Implementierung einer Softwareschnittstelle um einen Robotermanipulator über einen USB-Anschluss (serielle Schnittstelle) ansteuern zu können.
+		Die Ansteuerung des Robotermanipulators soll plattformunabhägig sein, das bedeutet, die Schnittstelle ist unter Windows und unter Linux 
+		kompilierbar und nutztbar. \\
+		Dazu wird eine vorliegende Software-Architektur auf ihre Vollständigkeit und Objektorientiertheit überprüft und gegebenenfalls angepasst. 
+		Im Anschluss wird die Software-Architektur in C++ umgesetzt. 
 		\newpage
 
 	\section{Abkürzungsverzeichnis}
@@ -113,7 +118,8 @@
     		Abb. \> \> Abbildung \\
     		ILIAS \> \> \textbf{I}ntegriertes \textbf{L}ern-, \textbf{I}nformations- und \textbf{A}rbeitskooperations-\textbf{S}ystem  \\
    			MEX \> \> \textbf{M}odularer \textbf{Ex}perimentierbaukasten \\
-   			$\mu s$ \> \> Mikrosekunden \\
+   			Zoom \> \> Enterprise-Videokonferenzen mit Instant-Messaging und Content-Sharing \\
+   			$\mu s$ \> \> Mikrosekunden (nicht als Zeitangabe, sondern als Positionsangabe)\\
    			$ms$ \> \> Millisekunden \\
   		\end{tabbing}
 		\newpage
@@ -183,7 +189,7 @@
 			\end{itemize}  
 
 		\subsection{Projektorganisation}
-			Für die Projektbetreuung ist zu Beginn ein wöchentliches Projektmeeting festgelegt worden. Die Meetings dienten dem Projekt
+			Für die Projektbetreuung ist zu Beginn ein wöchentliches Projektmeeting festgelegt worden. Das Meeting erfolgte über Zoom. Die Meetings dienten dem Projekt
 			zugrunde liegenden interativen Entwicklungsprozess. Das bedeutet das sich die Aufgabenstellung von Meeting zu Meeting weiterentwickelt hat. \\
 			Um die sich entwickelnde Aufgabenstellung zu dokumentieren ist im ILIAS ein Forum eingerichtet worden. Zusätzlich existiert dort ein Ordner um 
 			Projektdateien hochladen zu können. \\
@@ -213,7 +219,8 @@
 		\end{figure}
 		\noindent Der Abbildung \ref{fig:Bild5} auf Seite \pageref{fig:Bild5} zeigt das UML-Diagramm der Software-Architektur, welches die
 		Projektgruppe aus dem Wintersemester 2019/2020 erstellt hat. Bei dem Vergleich des UML-Diagramms und des Quellcodes ist 
-		festgestellt worden, das diese sich signifikant Unterscheiden. \\
+		festgestellt worden, das diese sich signifikant Unterscheiden. Die Software-Architektur entspricht nicht den eigentlichen Vorstellungen des Pojektverantwortlichen. \\
+		\ \\
 		Das UML-Diagramm sieht eine Klasse "`Pololu"' vor, die durch Vererbung die Methoden der Klassen "`IPololu"' und "`ISerialCom"' erhält. Diese
 		werden dann wiederrum an die Klasse "`StandardManip.A"' vererbt. Die Klasse "`StandardManip.A"' bietet dem Nutzer die Funktionen eine serielle Verbindung
 		zu Öffnen, zu Schließen und Positionswerte für eine Servomotor zu setzen. \\
@@ -231,6 +238,7 @@
 		wird eine Variable vom Typ HANDLE aus der <windows.h> genutzt. Die Handhabung der seriellen Schnittstelle erfolgt lediglich in einer Funktion. Für die serielle Verbindung
 		ist keine Klasse erstellt worden. Der Quellcode, der von der Projektgruppe erstellt wurde, funktioniert zwar um die Servomotoren zu testen und die Funktionsweise
 		des Robotermanipulators vorzuführen, entspicht jedoch nicht den gewünschten Anforderung einer objektorientierten Umsetzung. \\
+		\ \\
 		Aus diesem Grund ist die Software-Architektur überarbeitet worden. In Abb. \ref{fig:Bild6} auf Seite \pageref{fig:Bild6} ist das neue Konzept zu sehen. Die Implementierung und
 		die Zusammenhänge werden im nachfolgenden Kapitel behandelt.
 		\begin{figure}[htbp] 
@@ -320,7 +328,13 @@
 		Dabei steht 1 als Geschwindigkeitswert für die langsamste Geschwindigkeit des Servomotors und 255 für die Höchste. Ausnahme bildet die 0, sie steht für
 		"`unlimited speed"', also das Maximum, das der Servomotor leisten kann. Einen sichtbaren bzw. mit einfachen Mitteln meßßbaren Unterschied zwischen den Werten 0 und 255 gibt
 		es nicht. Daher ist in der Umsetzung der Befehle in C++ auf die 0 verzichtet worden. Es werden nur Werte von 1-255 zugelassen und es kommt auch nicht zu Geschwindigkeitssprüngen,
-		wenn z.B. der Wert innerhalb einer Schleife erhöht bzw. verringert wird. Gleiches gilt für den Befehl der Beschleunigung.\\ 	
+		wenn z.B. der Wert innerhalb einer Schleife erhöht bzw. verringert wird. Gleiches gilt für den Befehl der Beschleunigung. \\ 	
+		
+		Berechnung von Geschwindigkeit bzw. Beschleunigung:
+		\begin{eqnarray} \label{SpeedAcceleration}
+    		Geschwindigkeit = Geschwindigkeitswert(1-255) \times \frac{0.25\mu s}{10ms}  \\
+    		Beschleunigung = Beschleunigungswert(1-255) \times \frac{0.25\mu s}{10ms \times 80ms}
+		\end{eqnarray}
 		
 		\noindent \textbf{Get Position (in hex: 0x90)} Der Befehl Get Position veranlasst den Controller einen Rückantwort bereitzustellen, die von der seriellen Schnittstelle 
 		gelesen werden kann. Der Befehl Get Position besteht nur aus 2 Bytes (1 Befehlsbyte und 1 Datenbyte).
@@ -341,8 +355,9 @@
 	\section{Implementierung der Software-Achritektur}
 		Für die Implementierung der Schnittstelle ist entschieden worden unter Windows die WindowsAPI zu nutzen (\#include <windows.h>) und unter Linux die File Control Options in der "`\#include <fcntl.h>"'.
 		Die Entscheidung fiel nach Einarbeitung in das User's Guide von Pololu, welches auch Beispielcode für die Nutzung der Serial Commands sowohl unter Windows als auch unter Linux bot. Der Quellcode aller
-		implementieren Header- und Sourcefile sind dem Anhang bzw. der beiliegenden DVD zu entnehmen.
-		
+		implementierten Header- und Sourcefile sind dem Anhang bzw. der beiliegenden DVD zu entnehmen. \\
+		Die Fehlerbehandlung in den einzelnen Methoden der Klassen erfolgt über "`throw"'-Ausdrücke, diese können vom Bentuzer oder von einer später darüber liegenden Schicht mit "`try" und "`catch"' aufgefangen und
+		ausgewertet werden.
 				
 		% Bild der neuen Softwarearchitektur
 		\subsection{ISerialCom/SerialCom} \label{ISerialCom}
@@ -502,8 +517,7 @@
 			
 		\subsection{Testen der implementierten Klassen}
 			Um die Funktionalität der implementierenten Klassen "`SerialCom"', "`Pololu"' und "`ServoMotor"' zu testen, ist ein weiteres Header- und Sourcefile angelegt worden (TestUnits.hpp, 
-			Quellcode siehe Anhang \ref{TestUnitsHPP} auf Seite \pageref{TestUnitsHPP}).
-			Das Sourcefile "`TestUnits.cpp"' enthält aktuell 7 Funktionen um die Funktionalität der Schnittstelle zu testen.
+			Quellcode siehe Anhang \ref{TestUnitsHPP} auf Seite \pageref{TestUnitsHPP}). Das Sourcefile "`TestUnits.cpp"' enthält aktuell 7 Funktionen um die Funktionalität der Schnittstelle zu testen.
 			\begin{enumerate}
 				\item Eine Funktion Namens "`wait"'. Bei dieser Funktion handelt es sich um eine Hilffunktion, die bei der Nutzung
 				      der Servomotoren dafür genutzt wird um das ablaufende Programm zu stoppen und eine bestimmte Zeit abzuwarten.
@@ -545,12 +559,142 @@
 			    	  einer seriellen Verbindung mit und ohne Nutzung des Konstruktors, Öffnen und Schließen der Verbindung, sowie das Schreiben und Lesen.
 			   	\item Die Funktion "`testPololu"' dient dem Test der Klasse "`Pololu"' vor allem, ob der Zugriff auf die "`protected"'-Funktionen möglich ist.
 			\end{enumerate}
-	
-	\section{}
-		Text
-
+			
+		\subsection{Aufbau des Robotermanipulators}
+			Um die implementierte Schnittstelle zu testen ist der Robotermanipulator in zwei unterschiedlichen Varianten aufgebaut und getestet worden. \textbf{HINWEIS:}
+			Die beiden Testfunktionen "`testMEXMovementSetting1"' und "`testMEXMovementSetting2"' in den TestUnits-Files dürfen nur mit den, in den nächste beiden Abschnitten
+			beschriebenen Konfigurationen verwendet werden. Die Benutzung in einer anderen Konfiguration kann zu beschädigungen sowohl an mechanischen Bauteilen wie
+			auch an den Servomotoren führen. Es ist sinnvoll jede neue Aufbaukonfiguration zuerst mit dem Maestro Control Center zu testen und die Grenzen für die Servomotoren
+			auszuloten und für die Nutzung festzuschreiben. \\
+			\ \\
+			Der Grundaufbau ist für beide Konfigurationen identisch.
+			Die beiden Aufbauonfigurationen für den Robotermanipulator erfolgten nicht zu hundert Prozent nach der Aufbauanleitung der Projektgruppe des Wintersemester 2019/2020
+			(Aufbauanleitung ist im Anhang \ref{Aufbauanleitung} auf Seite \pageref{Aufbauanleitung} zu finden). 
+			Der Aufbau in der Anleitung sieht für die Konfiguration mit dem Greifer einen Aufbau mit 5 Servomotoren vor. Dies ist aktuell nicht möglich.
+			Die Installationsbox, die die Stromversorgung und den Controller beinhaltet bietet nur Anschlüsse für 4 Servomotoren (Abb. \ref{fig:Bild7} auf Seite \pageref{fig:Bild7}). 
+			\begin{figure}[htbp] 
+  				\centering
+     			\fbox{\includegraphics[width=\textwidth]{bilder/Abbildung_7.png}}
+  				\caption{Installationsbox (Quelle: eigene Aufnahme)}  
+  				\label{fig:Bild7}
+			\end{figure}
+			Dieser Aufbau beinhaltet zwei Grundplatten. Sie werden miteinander verschraubt. Auf die Grundplatten wird mittig der Grundträger geschraubt. Auf den Grundträger
+			wird dann noch eine Servoscheibe befestigt. Die Begriffe wie Grundplatte, Grundträger und Servoscheibe sind der Aufbauanleitung entnommen um im gleichen
+			Sprachgebrauch zu bleiben. Diese können in der Aufbauanleitung nachgelesen werden.
+			
+			\subsubsection{Konfiguration 1: Mit Greiferarm}
+				Für den Aufbau mit des Robotermanipulators mit Greifarm werden 4 Servomotoren (K-Power DM1500) benötigt. Einer wird mit 
+				mit einem Arm vom Typ 2 ausgestattet, 2 Servomotoren bekommen den Arm Typ 1 und der vierte Servomotor wird mit dem Greiferarm (Zusammenbau des Greiferarms ist der
+				Aufbauanleitung zu entnehmen) verbunden. \\
+				\begin{figure}[htbp] 
+  					\centering
+     				\fbox{\includegraphics[width=\textwidth]{bilder/Abbildung_8.png}}
+  					\caption{Robotermanipulator mit Greifer - Draufsicht (Quelle: eigene Aufnahme)}  
+  					\label{fig:Bild8}
+				\end{figure}
+				\begin{figure}[htbp] 
+  					\centering
+     				\fbox{\includegraphics[width=\textwidth]{bilder/Abbildung_9.png}}
+  					\caption{Robotermanipulator mit Greifer - Seitenansicht (Quelle: eigene Aufnahme)}  
+  					\label{fig:Bild9}
+				\end{figure}
+				\noindent Dabei sollten bei dieser Ausrichtung alle Servomotoren auf ihre mittlere Position eingestellt sein (1500$\mu s$ bzw. 6000 als Absolutwert. Jedoch sollten diese
+				Einstellungen zu Begin im Maestro Control Center in $\mu s$ erfolgen). Dabei ergeben sich bauteilbedingte Probleme. Abb. \ref{fig:Bild11} verdeutlicht eines 
+				der Schwierigkeiten.
+				\begin{figure}[htbp] 
+  					\centering
+     				\fbox{\includegraphics[width=0.4\textwidth]{bilder/Abbildung_11.png}}
+  					\caption{Positionierung eines Servomotors am Robotermanipulator (Quelle: eigene Aufnahme)}  
+  					\label{fig:Bild11}
+				\end{figure}
+				Aufgrund der Positionierung der Servoscheibe auf dem Grundträger bzw. auf einem Arm und der Verzahnung in der Servoscheibe, in die der Servomotor mit seiner 
+				ebenfalls verzahnten Achse eingesetzt wird, lässt sich der Arm in seiner Mittelstellung (1500$\mu s$) nicht gerade einsetzen. Das Soll ist die Ausrichtung wie in Abb. \ref{fig:Bild11} B		
+				gezeigt. Jedoch lässt sich der Servomotor in der Stellung 1500$\mu s$ nur wie in Abb. \ref{fig:Bild11} A oder C einsetzen. Um die Position der Servomotor in
+				die Stellung B zu bringen, muss er wie in A bzw. C eingesetzt werden und über das Maestro Control Center auf Position B gedreht werden. \\
+				So ergibt sich in diesem Fall, dass die mittlere Position des ersten Servomotors nicht 1500$\mu s$ sind, sondern bei 1420$\mu s$ bzw. 1580$\mu s$ liegt 
+				(dies entspricht einem Versatz von ca. 8$^\circ$). Das Vorgehen muss für alle Servomotor nacheinander wiederholt werden. Daraus ergeben sich die Einstellungen, 
+				die bei der Erzeugung der "`ServoMotor"-Objekte über den Kontruktor mitgegeben werden. \\
+				Weiterhin ist darauf zu achten, dass die Ausrichtung wie in Abb. \ref{fig:Bild8} gezeigt, nicht als Ausgangslage für die Nutzung der Schnittstelle dienen sollte.
+				Solange die Servomotoren mit Strom versorgt sind bleiben sie in der eingestellten Position. Wird der Robotermanipulator vom Strom genommen, sackt der Arm am Übergang
+				von Arm Typ 2 auf Arm Typ 1 Aufgrund des Eigengewichts ab und schlägt auf die Grundplatte auf. Beim wieder Einschalten werden die Servomotoren mit der Infomation
+				ihrer zuletzt eingestellten Position versorgt und der Arm reist ruckartig nach oben, so dass der gesamte Robotermanipulator in Bewegung gerät. Daher ist es ratsam zu 
+				Begin und zum Ende der Nutzung den Robotermanipulator in eine Parkposition zu bringen (z.B. wie in Abb. \ref{fig:Bild10} auf Seite \pageref{fig:Bild10}).
+				\begin{figure}[htbp] 
+  					\centering
+     				\fbox{\includegraphics[width=0.4\textwidth]{bilder/Abbildung_10.png}}
+  					\caption{Robotermanipulator mit Greifer - Parkposition (Quelle: eigene Aufnahme)}  
+  					\label{fig:Bild10}
+				\end{figure}
+				Der zweite Servomotor wird dazu auf die Position $startingPosition + 90^\circ$ gebracht. Dadurch bleibt der Robotermanipulator in der gleichen Position, 
+				auch wenn er vom Strom genommen wird. Ebenso verharrt der Arm beim Einschalten in der selben Position. \\
+				Weiterhin ist in Abb. \ref{fig:Bild9} auf Seite \pageref{fig:Bild9} zu sehen, dass der Arm des zusammengesetzten Robotermanipulators über die Grundplatte hinausragt.
+				Dem kann durch anbringen zweier weiterer Grundplatte im vorderen Bereich entgegengewirkt werden. \\
+				Nach dem Aufbau und der Konfiguration der Einstellungen im Maestro Control Center konnte der Robotermanipulator mit der "`testMEXMovementSetting1"' getestet werden.
+				Auf der beiliegenden DVD kann im Ordner "`Videos"' das Video "`Konfiguration\_A.mp4"' des Tests angeschaut werden.
+			
+			\subsubsection{Konfiguration 2: Mit Stifthalter}
+				Für den Aufbau des Robotermanipulators mit Stifthalter werden 4 Servomotoren (K-Power DM1500) benötigt. Der Aufbau erfolgt nach Aufbauanleitung. 	
+				Es werden drei Arm Typ 1 und ein Arm Typ 2 und der Stifthalter benötigt. Zuerst werden zwei Typ 1 Arme montiert, gefolgt von einem Typ 2 und im Anschluss erneut ein
+				Typ 1 Arm mit dem Stifthalter (Abb. \ref{fig:Bild12} auf Seite \pageref{fig:Bild12}). Der Bleistift ist durch einen Whiteboardmarker ersetzt worden, dadurch reicht
+				bereits eine leichte Berührung auf dem Papier um eine Markierung zu setzen.
+				\begin{figure}[htbp] 
+  					\centering
+     				\fbox{\includegraphics[width=\textwidth]{bilder/Abbildung_12.png}}
+  					\caption{Robotermanipulator mit Stifthalter - Seitenansicht (Quelle: eigene Aufnahme)}  
+  					\label{fig:Bild12}
+				\end{figure}
+				Mit der Testfunktion "`testMEXMovementSetting2"' wird der Robotermanipulator mit Stifthalter gestestet. Der Robotermanipulator fährt dazu 6 Punkte
+				auf einem Papierblatt an und setzt jeweils einen Punkt, wobei Punkt 1 und 6 von den Einstellungen der Servomotor identisch sind. Der Test kann ebenfalls im Ordner "`Videos"' 
+				(Konfiguration\_B.mp4) als Videoaufname angeschaut werden. Im Video sowie in der Abb. \ref{fig:Bild13} auf Seite \pageref{fig:Bild13} fällt ein weiteres Problem
+				des Robotermanipulators auf. 
+				\begin{figure}[htbp] 
+  					\centering
+     				\fbox{\includegraphics[width=0.6\textwidth]{bilder/Abbildung_13.png}}
+  					\caption{Robotermanipulator mit Stifthalter - Abweichungen (Quelle: eigene Aufnahme)}  
+  					\label{fig:Bild13}
+				\end{figure}
+				Trotz gleicher Einstellungen liegen die Punkte 1 und 6 nebeneinader und nicht wie erwartet übereinander. Diese Abweichung ist Geschwindigkeitsabhängig. 
+				Sowohl die Videoaufnahme als auch die Abb. \ref{fig:Bild13} zeigen das Ergebnis mit einem eingestellten Geschwindigkeitswert von 30 für alle Servomotoren. Das entspricht einer
+				Geschwindigkeit von $30 \times \frac{0.25\mu s}{10ms} = 0.75 \frac{\mu s}{ms}$. Wird die Geschwindigkeit auf den Wert 10 reduziert 
+				($10 \times \frac{0.25\mu s}{10ms} = 0.25 \frac{\mu s}{ms}$) liegt die Abweichung nur noch bei $1-2mm$. Je langsamer die Servomotoren drehen, desto präziser kann ein bestimmter
+				Punkt angesteuert werden. Der Effekt triff auf, weil jeder Arm des Robotermanipulators aufgrund seiner Kontruktion ein Spiel von $2-4mm$ hat. Das führt dazu dass der 
+				gesamte Robotermanipulator am Stifthalter ein Spiel von $8-16mm$, sowohl in horizontaler als auch in vertikaler Richtung, hat. 
+				Dies führt zu ungenauen Ansteuerungen bei höherer Geschwindigkeit.  
+				
 	\section{Fazit und Ausblick}
-		Text
+		Ziel der Bachelorarbeit ist die "`Umsetzung einer objektorierten Software-Architektur in C++ zur plattformunabhängigen
+		Ansteuerung eines Robotermanipulators"' gewesen. Die Umstrukturierung der Software-Architektur ist in Zusammenarbeit mit dem
+		Projektverantwortlichen durchgeführt worden. Die unterschiedlichen Aufgaben der Schnittstelle sind gegliedert und in Klassen
+		aufgeteilt worden.
+		\begin{description}
+			\item[Steuerung der seriellen Verbindung:] Zusammengefasst im Interface "`ISerialCom"' und der dazugehörigen Klasse "`SerialCom"'.
+			\item[Befehlsübertragung an den Controller:] Zusammengefasst im Interface "`IPololu"' und der dazugehörigen Klasse "`Pololu"'.
+			\item[Steuerung der Servomotoren:] Zusammengefasst im Interface "`IServoMotor"' und der dazugehörigen Klasse "`ServoMotor"'.
+		\end{description}
+		Durch die Testfunktionen ist gezeigt worden, dass die einzelnen Elemente der Schnittstelle funktionsfähig sind. Die implementierte Schnittstelle ermöglicht 
+		dem Nutzer eine serielle Verbindung mit Hilfe eines "`Pololu"'-Objektes herzustellen. Objekte für die angeschlossenen Servomotoren (ServoMotor) zu erstellen und die Servomotoren
+		über diese zu steuern. Die Funktionsweise ist in Bild und Ton dokumentiert. \\
+		\ \\
+		Für die Realisierung der Schnittstelle war, das zu Begin der Bachelorarbeit vereinbarte interative Vorgehen bei der Aufgabenstellung, ein enormer Vorteil. Die schrittweise
+		Entwicklung der Schnittstelle führte dazu die Problemstellung in einzelne Bereiche zu gliedern und diese einzeln und fokussiert zu betrachten. \\
+		\ \\
+		Ein weiterer Vorteil für die Entwicklung war, dass der Robotermanipulator von der Projektgruppe bereits fertig war und für die Testung bereitgestellt wurde.
+		Dadurch war es zu jeder Zeit möglich den aktuellen Vortschritt zu testen und zu erkennen an welchen Stellen der gewünschte Effekt noch nicht auftritt. \\
+		\ \\
+		Herausforderung bei der implementierung ist die Quellcodedokumentation gewesen. Den Quellcode zeitnah, verständlich und nachvollziehbar zu dokumentieren ist nicht 
+		immer einfach gewesen oder schlicht weg vergessen worden. Dies wurde allerdings nachgeholt und der Quellcode liegt jetzt dokumentiert vor.
+		\ \\
+		Die Zusammenarbeit mit dem Projektverantwortlichen (auch wenn nur über Zoom) ist sowohl für den Fortschritt der Arbeit als für die persönliche Weiterentwicklung
+		sehr bereichernd gewesen. \\
+		\ \\
+		Sicherlich ist am Robotormanipulator einiges Verbesserungsfähig und es besteht das Potential der Weiterentwicklung (Spiel der Servomotoren in den Servoscheiben). 
+		Er lässt jedoch bereit gut und einfach für simple Aufgaben einsetzen. Es können mit Hilfe der implentierten Schnittstelle vom Robotermanipulator mit Greifer leichte 
+		Gegenstände bewegt werden. Mit dem Stifthalter können auf Papier einzelne Punkte angefahren werden. Für genaueres Zeichnen, z.B. von geometrischen Figuren, 
+		erfordert es noch einer oder mehrerer zusätzlicher Schichten in der Implementierung. In der nächsten Ebene müssten die einzelnen Servomotoren und deren Grenzwerte in 
+		Beziehung zu einander gesetzt werden, damit z.B. wenn Servomotor um seinen Maximalradius nach unten gedreht ist, dass sich der an ihm hängede Servomotor nicht mehr 
+		auf seinen Maximalwert nach unten drehen lassen, weil der Arm die Grundplatte berühren würde. Akuell bewegen sich alle Servomotoren unabhängig von einander und 
+		es muss akribisch darauf geachtet werden, dass es nicht zu Beschädigungen kommt. \\
+		Bei vorsichtiger und vorausschauender Handhabung ist der Robotermanipulator mit der implementierten objektorientierten Schnittstelle einsatzfähig. 	
 		\newpage
 
 	% Abbildungsverzeichnis
@@ -570,6 +714,18 @@
 		(Willi Penner) \\
 		\newpage
 
+	\section{Inhalt des Datenträgers}
+		Auf dem beiliegenden Datenträger (DVD) liegen alle zur Bachelorarbeit gehörenden Videos, Bilder, Quellcodes und weitere Dokument vor.
+		Ordnerstruktur:
+		\begin{itemize}
+			\setlength{\itemsep}{0pt}
+			\item[$\bullet$] Enthält die Bachelorarbeit im PDF-Format.
+			\item[$\bullet$] \textbf{Videos:} Enthält die beiden Videos der Test des Robotermanipulators mit Greifer (Konfiguration\_A) und mit Stifthalter (Konfiguration\_B).
+			\item[$\bullet$] \textbf{Bilder:} Enthält sowohl Bilder, die in der Bachelorarbeit verwendet wurde, als auch weiter Aufnahmen des Robotermanipulators bzw. der Einzelteile.
+			\item[$\bullet$] \textbf{Quellcode:} Enhält die Quellcodefiles des Projektes.
+			\item[$\bullet$] \textbf{Latex:} Enthält die LaTeX-Datei der Bachelorarbeit und die der Bachelorarbeit angehängte Dokumente im PDF-Format. 
+		\end{itemize}
+	
 	% Anhang der Bachelorarbeit
 	\appendix
 		\section{Anhang}
@@ -588,13 +744,13 @@
 			\subsection{Pololu Maestro Servo Controller User's Guide (Seiten 54-58)} \label{usersguide}
 				\includegraphics[page=1,width=\textwidth]{maestro54.pdf}  
 				\newpage
-				\includegraphics[page=1,width=1.0\textwidth]{maestro55.pdf}
+				\includegraphics[page=1,width=\textwidth]{maestro55.pdf}
 				\newpage  
-				\includegraphics[page=1,width=1.0\textwidth]{maestro56.pdf}  
+				\includegraphics[page=1,width=\textwidth]{maestro56.pdf}  
 				\newpage	
-				\includegraphics[page=1,width=1.0\textwidth]{maestro57.pdf}  
+				\includegraphics[page=1,width=\textwidth]{maestro57.pdf}  
 				\newpage
-				\includegraphics[page=1,width=1.0\textwidth]{maestro58.pdf}  
+				\includegraphics[page=1,width=\textwidth]{maestro58.pdf}  
 				\newpage
 			% Interface ISerialCom
 			\subsection{Quellcode: Headerfile von ISerialCom und SerialCom} \label{SerialComHPP}
@@ -1480,8 +1636,9 @@
 										
 				\end{lstlisting}
 				\newpage
+			% Sourcefile ServoMotor
 			\subsection{Quellcode: Sourcefile ServoMotor} \label{ServoMotorCPP}
-				\begin{lstlisting}[caption={[ServoMotor] Auszug aus dem Sourcefile von ServoMotor}]
+				\begin{lstlisting}[caption={[ServoMotor] Sourcefile von ServoMotor}]
 					//============================================================================
 					// Name        : ServoMotor.cpp
 					// Author      : Willi Penner
@@ -1657,9 +1814,9 @@
 					}
 				\end{lstlisting}
 				\newpage
-			% Interface IServoMotor
+			% Headerfile TestUnits
 			\subsection{Quellcode: Headerfile TestUnits.hpp} \label{TestUnitsHPP}
-				\begin{lstlisting}[caption={[TestUnits] Auszug aus dem Headerfile von TestUnits}]
+				\begin{lstlisting}[caption={[TestUnits] Headerfile von TestUnits}]
 					//============================================================================
 					// Name        : TestUnits.hpp
 					// Author      : Willi Penner
@@ -1677,4 +1834,610 @@
 					
 					#endif /* TESTUNITS_HPP_ */
 				\end{lstlisting}
+				\newpage
+			% Sourcefile TestUnits
+			\subsection{Quellcode: Sourcefile TestUnits.spp} \label{TestUnitsSPP}
+				\begin{lstlisting}[caption={[TestUnits] Sourcefile von TestUnits}]
+					//============================================================================
+					// Name        : TestUnits.cpp
+					// Author      : Willi Penner
+					//
+					// Description :
+					//============================================================================
+					#include "Pololu.hpp"
+					#include "SerialCom.hpp"
+					#include "ServoMotor.hpp"
+					#include <string>
+					#include <iostream>
+					#include <cmath>
+					
+					using namespace std;
+					
+					#ifdef _WIN32
+					    #include <windows.h>
+					#else
+						#include <unistd.h>
+					#endif
+					
+					/** \brief The function is used for waiting for a certain time, depending on the operating system Sleep () or usleep () is used.
+					 *
+					 *	\param milliseconds = Time to wait in milliseconds
+					 *
+					 */
+					void wait(unsigned long milliseconds){
+						#ifdef _WIN32
+							Sleep(milliseconds);
+						#else
+							usleep(milliseconds);
+						#endif
+					}
+					
+					/** \brief Function systematically tests the opening and closing of a serial connection
+					 *
+					 */
+					void testOpenClose (){
+					    //Define the port name and the baud rate
+						#ifdef _WIN32
+							const char* portName = "COM5";  		// Windows
+						#else
+							const char* portName = "/dev/ttyACM0";  // Linux
+						#endif
+						unsigned short baudRate = 9600;
+					    //Define a Pololu object
+					    Pololu conn(portName, baudRate);
+					
+					    /**< Test 1 */
+					    //Open the serial port with the initialized port name and baud rate
+					    std::cout << "TEST_01 :: ";
+					    if (conn.openConnection()){
+					        std::cout << portName << ": Connection opened successfully" << std::endl;
+					    }
+					    //Open the same port again
+					    std::cout << "TEST_01 :: ";
+					    if (conn.openConnection()){
+					        std::cout << portName << ": Connection opened successfully" << std::endl;
+					    }
+					
+					    /**< Test 2 */
+					    //Close the port
+					    std::cout << "TEST_02 :: ";
+					    if (conn.closeConnection()){
+					        std::cout << portName << ": Connection closed successfully" << std::endl;
+					    }
+					    //Close the same port again
+					    std::cout << "TEST_02 :: ";
+					    if (conn.closeConnection()){
+					        std::cout << portName << ": Connection closed successfully" << std::endl;
+					    }
+					
+					    /**< Test 3 */
+					    //Reinitialize the serial port with an unknown name
+					    conn.initConnection("COM7", baudRate);
+					    //Open the newly initialized port
+					    std::cout << "TEST_03 :: ";
+					    if (conn.openConnection()){
+					        std::cout << "COM7" << ": Connection opened successfully" << std::endl;
+					    }
+					
+					    /**< Test 4 */
+					    //Reinitialize the serial port with a known port, but not from the Pololu
+					    conn.initConnection("COM1", baudRate);
+					    //Open the port
+					    std::cout << "TEST_04 :: ";
+					    if (conn.openConnection()){
+					        std::cout << "COM1" << ": Connection opened successfully" << std::endl;
+					    }
+					    //Close the port
+					    std::cout << "TEST_04 :: ";
+					    if (conn.closeConnection()){
+					        std::cout << portName << ": Connection closed successfully" << std::endl;
+					    }
+					
+					    /**< Test 5 */
+					    //Reinitialize the serial port with a Pololu known port
+					    conn.initConnection(portName, baudRate);
+					    for (int i = 0; i < 100; i++){
+					    	std::cout << "TEST_05_" << i << " :: ";
+					        if (conn.openConnection()){
+					            std::cout << portName << ": Connection opened successfully" << std::endl;
+					        }
+					    }
+					    conn.closeConnection();
+					}
+					
+					/** \brief Function systematically tests the writing and reading of a serial connection.
+					 *  This function is not suitable for testing the methods on the robot manipulator.
+					 *  Please use it on a stand alone controller.
+					 *
+					 *  Settings for the servo motors in the Pololu Control Center:
+					 *  Serial Settings:
+					 *      Serial mode: USB Dual Port
+					 *  Channelsettings:
+					 *      NAME       | Min       | Max        | 8-bit neutral
+					 *      SERVO_01   | 480       | 2400       | 1500
+					 *      SERVO_02   | 480       | 2400       | 1500
+					 *      SERVO_04   | 480       | 2400       | 1500
+					 *
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *  Please check the values in the Pololu Control Center first
+					 *
+					 */
+					void testSetGetMethods (){
+						// Define the port name and the baud rate
+						#ifdef _WIN32
+							const char* portName = "COM4";  		// Windows
+						#else
+							const char* portName = "/dev/ttyACM0";  // Linux
+						#endif
+					    // Defines a serial connections and opens it.
+						Pololu conn(portName, 9600);
+						conn.openConnection();
+					
+						// Defines three servomotors of two different types.
+						// ServoMotor name(<portnumber on the controller>, <middle position of the servo>, <movement range in one direction>, <pointer to the serial connection>)
+						ServoMotor SG_90_1(1, 5680, 3600, &conn);
+						ServoMotor SG_90_2(2, 5680, 3600, &conn);
+						ServoMotor DM1500_1(4, 5680, 3600, &conn);
+						unsigned short servoMin = 0;
+						unsigned short servoMid = 0;
+						unsigned short servoMax = 0;
+					
+						// Shows the min-, max-position and the 8bit-neutral for the servo channelsettings for the pololu controller.
+						// The values have to be the same as in the Pololu Maestro Control Center.
+						//
+						// For example:
+						// Pololu values for the servo channel settings at port 2:
+						// Min:          520 microseconds
+						// Max:          2320 microseconds
+						// 8bit neutral: 1420 microseconds
+						SG_90_1.showPololuValues(servoMin, servoMid, servoMax);
+						cout << "Pololu values for the servo channel settings at port " << SG_90_1.getServoNumber() << ":" << endl;
+						cout << "Min:          " << servoMin << endl;
+						cout << "Max:          " << servoMax << endl;
+						cout << "8bit neutral: " << servoMid << endl << endl;
+						//SG_90_2.showPololuValues(servoMin, servoMid, servoMax);
+						//DM1500_1.showPololuValues(servoMin, servoMid, servoMax);
+					
+						// Shows the min-,  mid- and max-position of the defined servos
+						cout << "SERVO: SG_90_1 | SG_90_2 | DM1500_1 \n" << "Min:   " << SG_90_1.getMinPos() << "      " << SG_90_2.getMinPos() << "      " << DM1500_1.getMinPos()
+								<< "\nMid:   " << SG_90_1.getMidPos() << "      " << SG_90_2.getMidPos() << "      " << DM1500_1.getMidPos() << "\nMax:   " << SG_90_1.getMaxPos()
+								<< "      " << SG_90_2.getMaxPos() << "      " << DM1500_1.getMaxPos() << endl;
+					
+						// Set speed and acceleration for all servos
+						SG_90_1.setSpeed(30);
+						SG_90_1.setAccelaration(30);
+						SG_90_2.setSpeed(30);
+						SG_90_2.setAccelaration(30);
+						DM1500_1.setSpeed(30);
+						DM1500_1.setAccelaration(30);
+					
+						// Moves the servo 1 to the minimum or maximum position depending on the starting position.
+						if (SG_90_1.getPositionInAbs() < SG_90_1.getMidPos()){
+							SG_90_1.setPositionInAbs(SG_90_1.getMaxPos());
+						}else{
+							SG_90_1.setPositionInAbs(SG_90_1.getMinPos());
+						}
+						// Moves the servo 2 to the minimum or maximum position depending on the starting position.
+						if (SG_90_2.getPositionInAbs() < SG_90_2.getMidPos()){
+							SG_90_2.setPositionInAbs(SG_90_2.getMaxPos());
+						}else{
+							SG_90_2.setPositionInAbs(SG_90_2.getMinPos());
+						}
+						// Moves the servo 3 to the minimum or maximum position depending on the starting position (5 times).
+						for (int i = 0; i < 5; i++){
+							if (DM1500_1.getPositionInAbs() < DM1500_1.getMidPos()){
+								DM1500_1.setPositionInAbs(DM1500_1.getMaxPos());
+								while(conn.getMovingState());
+							}else{
+								DM1500_1.setPositionInAbs(DM1500_1.getMinPos());
+								while(conn.getMovingState());
+							}
+						}
+					
+						// Moves servo 3 to the position of zero degree.
+						DM1500_1.setPositionInDeg(0);
+						while(conn.getMovingState());
+						// Moves servo 3 to the position of maximum abs position.
+						DM1500_1.setPositionInAbs(DM1500_1.getMaxPos());
+						while(conn.getMovingState());
+						// Moves servo 3 to the position of -45 degree.
+						DM1500_1.setPositionInDeg(-45);
+						while(conn.getMovingState());
+						// Moves servo 3 to the position of PI/2 radiant.
+						DM1500_1.setPositionInRad(-1.5);
+						while(conn.getMovingState());
+						// Moves servo 3 to the position of zero radiant.
+						DM1500_1.setPositionInRad(0.0);
+						while(conn.getMovingState());
+					
+						// Closes the connection.
+						conn.closeConnection();
+					}
+					
+					/** \brief Function for testing the fully assembled MEX robot manipulator.
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *
+					 *  This function may only be carried out on the MEX system under certain general conditions.
+					 *	Please check the settings in the Pololu Maestro Control Center first.
+					 *
+					 *  Settings for the servo motors in the Pololu Control Center:
+					 *  Serial Settings:
+					 *      Serial mode: USB Dual Port
+					 *  Channelsettings:
+					 *      NAME       | Min       | Max        | 8-bit neutral
+					 *      SERVO_01   | 512       | 2400       | 1420
+					 *      SERVO_02   | 512       | 2400       | 1500
+					 *      SERVO_03   | 512       | 2400       | 1470
+					 *      SERVO_04   | 480       | 1504       | 952
+					 * Status: set the servo to following positions(parking position)
+					 *      NAME       | Target
+					 *      SERVO_01   | 1420
+					 *      SERVO_02   | 710
+					 *      SERVO_03   | 1470
+					 *      SERVO_04   | 952
+					 *
+					 */
+					void testMEXMovementSetting1(){
+					    unsigned short speed = 100;
+					    unsigned short acceleration = 10;
+					    // Define the port name and the baud rate
+					   	#ifdef _WIN32
+					   		const char* portName = "COM5";  		// Windows
+					   	#else
+					   		const char* portName = "/dev/ttyACM2";  // Linux
+					   	#endif
+					    Pololu conn(portName, 9600);
+					
+					    // Open connection to COM port.
+					    conn.openConnection();
+					
+					    // Define the servos of the robot manipulator
+					    ServoMotor base(1, 5680, 3600, &conn);
+					    ServoMotor arm_1(2, 6000, 3600, &conn);
+					    ServoMotor arm_2(3, 5880, 3600, &conn);
+					    ServoMotor grip(4, 3808, 1888, &conn);
+					
+					    wait(1000);
+					
+					    // Set speed and acceleration for all servos
+					    base.setSpeed(speed);
+					    base.setAccelaration(acceleration);
+					    arm_1.setSpeed(speed);
+					    arm_1.setAccelaration(acceleration);
+					    arm_2.setSpeed(speed);
+					    arm_2.setAccelaration(acceleration);
+					    grip.setSpeed(speed);
+					    grip.setAccelaration(acceleration);
+					
+					    // Go to parking position
+					    base.setPositionInAbs(5680);
+					    arm_1.setPositionInAbs(2840);
+					    arm_2.setPositionInAbs(5880);
+					    grip.setPositionInAbs(3808);
+					    while(conn.getMovingState());
+					
+					    // Go to start position
+					    arm_1.setPositionInAbs(6000);
+					    while(conn.getMovingState());
+					
+					    //Move into grabbing position
+					    base.setPositionInAbs(3600);
+					    arm_1.setPositionInAbs(4000);
+					    while(conn.getMovingState());
+					    grip.setPositionInAbs(4800);
+					    arm_2.setPositionInAbs(arm_2.getMinPos());
+					    arm_1.setPositionInAbs(4800);
+					    while(conn.getMovingState());
+					
+					    // Grab
+					    grip.setPositionInAbs(3320);
+					    while(conn.getMovingState());
+					    // Lift
+					    arm_1.setPositionInAbs(4000);
+					    while(conn.getMovingState());
+					
+					    // Move to new Location
+					    base.setPositionInAbs(8000);
+					    while(conn.getMovingState());
+					
+					    // Drop
+					    arm_1.setPositionInAbs(4700);
+					    while(conn.getMovingState());
+					    grip.setPositionInAbs(4800);
+					    while(conn.getMovingState());
+					    arm_1.setPositionInAbs(4000);
+					    while(conn.getMovingState());
+					
+					    // Go to start position
+					    base.setPositionInAbs(5680);
+					    while(conn.getMovingState());
+					    arm_1.setPositionInAbs(6000);
+					    arm_2.setPositionInAbs(5880);
+					    grip.setPositionInAbs(3808);
+					    while(conn.getMovingState());
+					
+					    // Wave
+					    grip.setSpeed(100);
+					    grip.setAccelaration(100);
+					    arm_2.setPositionInDeg(90);
+					    while(conn.getMovingState());
+					    for (int i = 0; i < 8; i++){
+					        if (grip.getPositionInAbs() > grip.getMidPos()){
+					        	grip.setPositionInAbs(grip.getMinPos());
+					        	while(conn.getMovingState());
+					        }else{
+					        	grip.setPositionInAbs(grip.getMaxPos());
+					        	while(conn.getMovingState());
+					        }
+					    }
+					    arm_2.setPositionInDeg(0);
+					    grip.setSpeed(speed);
+					    grip.setAccelaration(acceleration);
+					
+					    // Go to Parking Position
+					    arm_1.setPositionInAbs(2840);
+					
+					    // Close the serial Connection
+					    conn.closeConnection();
+					}
+					
+					/** \brief Function for testing the fully assembled MEX robot manipulator.
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *  WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+					 *
+					 *  This function may only be carried out on the MEX system under certain general conditions.
+					 *	Please check the settings in the Pololu Maestro Control Center first.
+					 *
+					 *  Settings for the servo motors in the Pololu Control Center:
+					 *  Serial Settings:
+					 *      Serial mode: USB Dual Port
+					 *  Channelsettings:
+					 *      NAME       | Min       | Max        | 8-bit neutral
+					 *      SERVO_01   | 660       | 2460       | 1560
+					 *      SERVO_02   | 640       | 2540       | 1640
+					 *      SERVO_03   | 610       | 2410       | 1510
+					 *      SERVO_04   | 496       | 980        | 496
+					 * Status: set the servo to following positions(parking position)
+					 *      NAME       | Target
+					 *      SERVO_01   | 1560
+					 *      SERVO_02   | 1640
+					 *      SERVO_03   | 1510
+					 *      SERVO_04   | 496
+					 *
+					 */
+					void testMEXMovementSetting2(){
+					    unsigned short speed = 2;
+					    unsigned short acceleration = 200;
+					    // Define the port name and the baud rate
+					   	#ifdef _WIN32
+					   		const char* portName = "COM5";  		// Windows
+					   	#else
+					   		const char* portName = "/dev/ttyACM2";  // Linux
+					   	#endif
+					    Pololu conn(portName, 9600);
+					
+					    // Open connection to COM port.
+					    conn.openConnection();
+					
+					    // Define the servos of the robot manipulator
+					    ServoMotor arm_0(1, 6240, 3600, &conn);
+					    ServoMotor arm_1(2, 6560, 3600, &conn);
+					    ServoMotor arm_2(3, 6160, 3600, &conn);
+					    ServoMotor arm_3(4, 2944, 960, &conn);
+					
+					    wait(1000);
+					
+					    // Set speed and acceleration for all servos
+					    arm_0.setSpeed(speed);
+					    arm_0.setAccelaration(acceleration);
+					    arm_1.setSpeed(speed);
+					    arm_1.setAccelaration(acceleration);
+					    arm_2.setSpeed(speed);
+					    arm_2.setAccelaration(acceleration);
+					    arm_3.setSpeed(speed);
+					    arm_3.setAccelaration(acceleration);
+					    while(conn.getMovingState());
+					
+					    // Move into starting position
+					    arm_0.setPositionInAbs(arm_0.getMidPos());
+					    arm_1.setPositionInAbs(arm_1.getMidPos());
+					    arm_2.setPositionInAbs(arm_2.getMidPos());
+					    arm_3.setPositionInAbs(arm_3.getMinPos());
+					    while(conn.getMovingState());
+					
+					    wait(5000);
+					
+					    arm_3.setPositionInAbs(2400);
+					    while(conn.getMovingState());
+					    // Point top
+					    arm_0.setPositionInAbs(6792);
+					    arm_1.setPositionInAbs(5800);
+					    arm_2.setPositionInAbs(9040);
+					    while(conn.getMovingState());
+					
+					    arm_3.setPositionInAbs(3100);
+					    while(conn.getMovingState());
+					    arm_3.setPositionInAbs(2400);
+					    while(conn.getMovingState());
+					
+					    // Point top left
+					    arm_0.setPositionInAbs(5704);
+					    arm_1.setPositionInAbs(4752);
+					    arm_2.setPositionInAbs(9452);
+					    while(conn.getMovingState());
+					
+					    arm_3.setPositionInAbs(3200);
+					    while(conn.getMovingState());
+					    arm_3.setPositionInAbs(2400);
+					    while(conn.getMovingState());
+					
+					    // Point bottom left
+					    arm_0.setPositionInAbs(4404);
+					    arm_1.setPositionInAbs(3860);
+					    arm_2.setPositionInAbs(9600);
+					    while(conn.getMovingState());
+					
+					    arm_3.setPositionInAbs(3300);
+					    while(conn.getMovingState());
+					    arm_3.setPositionInAbs(2400);
+					    while(conn.getMovingState());
+					
+					    // Point bottom right
+					    arm_0.setPositionInAbs(4544);
+					    arm_1.setPositionInAbs(3880);
+					    arm_2.setPositionInAbs(8856);
+					    while(conn.getMovingState());
+					
+					    arm_3.setPositionInAbs(3300);
+					    while(conn.getMovingState());
+					    arm_3.setPositionInAbs(2400);
+					    while(conn.getMovingState());
+					
+					    // Point top right
+					    arm_0.setPositionInAbs(5840);
+					    arm_1.setPositionInAbs(4800);
+					    arm_2.setPositionInAbs(8780);
+					    while(conn.getMovingState());
+					
+					    arm_3.setPositionInAbs(3200);
+					    while(conn.getMovingState());
+					    arm_3.setPositionInAbs(2400);
+					    while(conn.getMovingState());
+					
+					    // Point top
+					    arm_0.setPositionInAbs(6792);
+					    arm_1.setPositionInAbs(5800);
+					    arm_2.setPositionInAbs(9040);
+					    while(conn.getMovingState());
+					
+					    arm_3.setPositionInAbs(3100);
+					    while(conn.getMovingState());
+					    arm_3.setPositionInAbs(2400);
+					    while(conn.getMovingState());
+					
+					    // Move into starting position
+					    arm_0.setPositionInAbs(arm_0.getMidPos());
+					    arm_1.setPositionInAbs(arm_1.getMidPos());
+					    arm_2.setPositionInAbs(arm_2.getMidPos());
+					    arm_3.setPositionInAbs(arm_3.getMinPos());
+					    while(conn.getMovingState());
+					
+					
+					    // Close the serial Connection
+					    conn.closeConnection();
+					}
+					
+					void testSerialCom(){
+						SerialCom serialCom1;
+						SerialCom serialCom2("COM4", 9600);
+					
+						if (serialCom1.getPort() == NULL){
+							cout << "COM1: No port established" << endl;
+						}else{
+							cout << "COM1: " << serialCom1.getPort() << endl;
+						}
+						if (serialCom2.getPort() == NULL){
+							cout << "COM2: No port established" << endl;
+						}else{
+							cout << "COM2: " << serialCom2.getPort() << endl;
+						}
+					
+						try{
+							serialCom1.openSerialCom();
+							cout << "COM1: " << serialCom1.getPort() << endl;
+						}catch (std::string &errorMessage){
+					        std::cout << "COM1: " << errorMessage;
+					    }
+					
+						try{
+							serialCom2.openSerialCom();
+							cout << "COM2: " << serialCom1.getPort() << endl;
+						}catch (std::string &errorMessage){
+						    std::cout << "COM2: " << errorMessage;
+						}
+					
+						try{
+							serialCom1.initSerialCom("COM7",9600);
+							std::cout << "COM7: initialized" << endl;
+						}catch (std::string &errorMessage){
+						    std::cout << "COM7: " << errorMessage;
+						}
+					
+						try{
+							serialCom1.openSerialCom();
+							cout << "COM7: " << serialCom1.getPort() << endl;
+						}catch (std::string &errorMessage){
+						    std::cout << "COM7: " << errorMessage;
+						}
+					
+						unsigned char command[4];
+						command[0] = 0x84;
+						command[1] = (unsigned char)3;
+						command[2] = (unsigned char)(6000 & 0x7F);
+						command[3] = (unsigned char)((6000 >> 7) & 0x7F);
+						serialCom2.writeSerialCom(command, 4, NULL, 0);
+					
+						unsigned char commandRead[2];
+						commandRead[0] = 0x90;
+						commandRead[1] = (unsigned char)3;
+						unsigned char response[2];
+						serialCom2.writeSerialCom(commandRead, 2, response, 2);
+						cout << "COM2: Servo 4 is at position " << response[0] + 256 * response[1] ;
+					}
+					
+					void testPololu(){
+						Pololu conn("COM4", 9600);
+					
+						try{
+							conn.openConnection();
+							cout << "Pololutest: Connection opened" << endl;
+						}catch (std::string &errorMessage){
+						    std::cout << "Pololutest: " << errorMessage;
+						}
+					
+						/*try{
+							conn.setPosition(3, 2400);
+							cout << "Pololutest: Position set" << endl;
+						}catch (std::string &errorMessage){
+						    std::cout << "Pololutest: " << errorMessage;
+						}*/
+					
+						try{
+							conn.openConnection();
+							cout << "Pololutest: Connection closed" << endl;
+						}catch (std::string &errorMessage){
+						    std::cout << "Pololutest: " << errorMessage;
+						}
+					}
+				
+				\end{lstlisting}
+				\newpage		
+			% Aufbauanleitung der Projektgruppe
+			\subsection{Aufbauanleitung MEX} \label{Aufbauanleitung} 
+				\includegraphics[page=1,width=1.1\textwidth]{Aufbau01.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau02.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau03.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau04.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau05.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau06.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau07.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau08.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau09.pdf}  
+				\newpage
+				\includegraphics[page=1,width=\textwidth]{Aufbau10.pdf}  
+				\newpage	
+			
 \end{document}
